@@ -27,6 +27,7 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    now = datetime.now(timezone.utc)
     user = User(
         email=request.email,
         hashed_password=hash_password(request.password),
@@ -35,9 +36,12 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         role="analyst",
         is_active=True,
         is_verified=True,
+        created_at=now,
+        updated_at=now,
     )
     db.add(user)
     await db.flush()
+    await db.refresh(user)
     return user
 
 
