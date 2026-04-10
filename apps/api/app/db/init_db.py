@@ -36,9 +36,9 @@ async def init_db(db: AsyncSession):
 
     # Seed demo clients
     from app.models.client import Client
+    from sqlalchemy import func
     client_count = await db.scalar(select(func.count(Client.id)))
     if not client_count:
-        from sqlalchemy import func
         demo_clients = [
             Client(name="ABC Trading LLC", type="corporate", status="active",
                    country="AE", industry="Trade Finance", risk_score=4.2, risk_level="high",

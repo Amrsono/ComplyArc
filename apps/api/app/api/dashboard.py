@@ -138,7 +138,7 @@ async def get_risk_analytics(
         select(
             Client.country,
             func.count(Client.id).label("clients"),
-            func.avg(Client.risk_score_total).label("avg_risk"),
+            func.avg(Client.risk_score).label("avg_risk"),
         )
         .where(Client.country.isnot(None))
         .group_by(Client.country)
@@ -158,12 +158,12 @@ async def get_risk_analytics(
     industry_q = await db.execute(
         select(
             Client.industry,
-            func.avg(Client.risk_score_total).label("avg_risk"),
+            func.avg(Client.risk_score).label("avg_risk"),
             func.count(Client.id).label("clients"),
         )
         .where(Client.industry.isnot(None))
         .group_by(Client.industry)
-        .order_by(func.avg(Client.risk_score_total).desc())
+        .order_by(func.avg(Client.risk_score).desc())
         .limit(8)
     )
     product_risk = [
