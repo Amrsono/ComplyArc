@@ -1,0 +1,118 @@
+version: "3.9"
+
+services:
+  # ─── PostgreSQL Database ────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: cortex-postgres
+    environment:
+      POSTGRES_USER: cortex
+      POSTGRES_PASSWORD: cortex_secret
+      POSTGRES_DB: cortex_aml
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cortex -d cortex_aml"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis Cache & Message Broker ───────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cortex-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── FastAPI Backend ────────────────────────────
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: cortex-api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cortex:cortex_secret@postgres:5432/cortex_aml
+      DATABASE_URL_SYNC: postgresql://cortex:cortex_secret@postgres:5432/cortex_aml
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-cortex-dev-secret-key-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      NEWS_API_KEY: ${NEWS_API_KEY:-}
+      CORS_ORIGINS: http://localhost:3000
+      ENVIRONMENT: production
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Next.js Frontend ──────────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: cortex-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ─── Celery Worker (Background Tasks) ──────────
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: cortex-worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cortex:cortex_secret@postgres:5432/cortex_aml
+      DATABASE_URL_SYNC: postgresql://cortex:cortex_secret@postgres:5432/cortex_aml
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-cortex-dev-secret-key-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      NEWS_API_KEY: ${NEWS_API_KEY:-}
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Celery Beat (Scheduled Tasks) ─────────────
+  beat:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: cortex-beat
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cortex:cortex_secret@postgres:5432/cortex_aml
+      DATABASE_URL_SYNC: postgresql://cortex:cortex_secret@postgres:5432/cortex_aml
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
