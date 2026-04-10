@@ -105,6 +105,7 @@ async def health_check():
         "service": "ComplyArc API",
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
+        "deploy_check": "v2_direct_bcrypt"
     }
 
 
