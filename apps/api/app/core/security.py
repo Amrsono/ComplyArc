@@ -1,30 +1,26 @@
 """
-ComplyArc â€” Security Module
+ComplyArc — Security Module
 JWT management, password hashing, API key validation
 """
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 import secrets
 import hashlib
 
 from app.core.config import settings
 
-# â”€â”€â”€ Password Hashing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def _prepare_password(password: str) -> str:
-    """Pre-hash password with SHA-256 to handle bcrypt's 72-byte limit."""
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
-
+# ——— Password Hashing ————————————————————————————
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(_prepare_password(password))
+    pw = password.encode("utf-8")[:72]
+    return bcrypt.hashpw(pw, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(_prepare_password(plain_password), hashed_password)
+    pw = plain_password.encode("utf-8")[:72]
+    return bcrypt.checkpw(pw, hashed_password.encode("utf-8"))
 
 
 # â”€â”€â”€ JWT Token Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
