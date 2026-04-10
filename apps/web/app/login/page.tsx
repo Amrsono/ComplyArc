@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, Mail, Lock, User, Building2, ArrowRight, Loader2 } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 import api from '@/lib/api';
 
 export default function LoginPage() {
@@ -15,6 +16,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const { login: authLogin, register: authRegister } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -22,9 +25,10 @@ export default function LoginPage() {
 
     try {
       if (mode === 'register') {
-        await api.register(email, password, fullName, organization || undefined);
+        await authRegister(email, password, fullName, organization || undefined);
+      } else {
+        await authLogin(email, password);
       }
-      await api.login(email, password);
       router.push('/');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
