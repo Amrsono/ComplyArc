@@ -1,0 +1,98 @@
+================================================================================
+  COMPLYARC: AI-NATIVE AML & RISK INTELLIGENCE PLATFORM
+  "The Comprehensive Guide to Enterprise Risk Governance"
+================================================================================
+
+ComplyArc is a state-of-the-art Anti-Money Laundering (AML) and Know Your 
+Customer (KYC) platform designed for the modern financial landscape. By 
+combining advanced data analytics with AI-driven intelligence, ComplyArc 
+transforms complex compliance workflows into a streamlined, high-performance 
+operational experience.
+
+--------------------------------------------------------------------------------
+1. CORE PLATFORM FUNCTIONALITIES
+--------------------------------------------------------------------------------
+
+[A] INTELLIGENT COMMAND CENTER (DASHBOARD)
+The central nervous system of your compliance operations.
+- Real-time KPI Tracking: Monitor Active Clients, Open Cases, and High-Risk alerts at a glance.
+- Risk Distribution Heatmaps: Visualize portfolio risk by Country, Product Type, and Risk Factor.
+- Interactive Analytics: Dynamic charts showing screening trends and case resolution velocity.
+- Live Audit Feed: Secure, timestamped log of every interaction within the platform.
+
+[B] HIGH-FIDELITY SCREENING ENGINE
+Instant verification against global risk databases.
+- Multi-Source Screening: Search PEP (Politically Exposed Persons), Sanctions, and Watchlists simultaneously.
+- Fuzzy Matching Logic: Configurable sensitivity thresholds to reduce false positives while ensuring 100% coverage.
+- Batch Processing: Upload and screen thousands of entities instantly via CSV/API.
+- Direct-to-Case Workflow: Convert potential hits into active investigation cases with one click.
+
+[C] CLIENT LIFECYCLE MANAGEMENT (CLM)
+From onboarding to ongoing due diligence.
+- Onboarding Wizard: Structured data collection for Individuals and Corporates.
+- UBO Visualization: Interactive mapping of Ultimate Beneficial Ownership structures.
+- Dynamic Risk Scoring: Automated risk calculation based on Country, Industry, and Interface factors.
+- Profile Persistence: A "Golden Record" for every client with full document and note history.
+
+[D] KANBAN CASE MANAGEMENT
+Professional investigation environment for compliance teams.
+- Visual Workflow: Transition cases through 'New', 'In-Progress', 'Review', and 'Resolved' statuses.
+- Evidence & Notes: Secure internal communication thread for analysts to collaborate on investigations.
+- Decision Audit Trail: Capture the 'Why' behind every case closure for regulatory review.
+
+[E] CONTINUOUS MONITORING & ALERTS
+Continuous vigilance that never sleeps.
+- Real-time Watch: Automatically re-screens clients daily or upon external list updates.
+- Smart Alerts: Intelligent prioritization of alerts by severity (High/Med/Low).
+- Alert Resolution: Efficient queue management to clear harmless notifications quickly.
+
+[F] AI-POWERED ADVERSE MEDIA
+Reputational risk intelligence driven by Large Language Models.
+- Global News Pulse: Scans thousands of global sources for negative mentions.
+- Sentiment Classification: AI categorizes news into 'Financial Crime', 'Corruption', 'Legal Issues', etc.
+- Smart Summaries: Instant AI-generated abstracts of complex news articles.
+
+[G] COMPLIANCE REPORTING SUITE
+Regulatory readiness in a single click.
+- Template-Based Generation: Standard formats for SAR (Suspicious Activity Reports) and KYC audits.
+- Export Capabilities: Professional PDF and Excel exports ready for submission to regulators.
+
+--------------------------------------------------------------------------------
+2. KEY BENEFITS FOR CUSTOMERS
+--------------------------------------------------------------------------------
+
+[1] RADICAL OPERATIONAL EFFICIENCY
+Automate over 70% of manual screening tasks. ComplyArc's intelligent grouping and 
+deduplication logic ensure that compliance officers spend time on high-value 
+investigations rather than cleaning data.
+
+[2] REGULATORY PEACE OF MIND
+Built to align with FATF, EU Directives, and BSA/Patriot Act requirements. The 
+platform enforces a consistent compliance methodology across the entire 
+organization, ensuring you never miss a required check.
+
+[3] TRANSPARENT RISK VISIBILITY
+Move from "Gut Feeling" to "Data-Driven" decisions. ComplyArc provides a 
+mathematical breakdown of why a client is considered High Risk, allowing for 
+clear communication with stakeholders and regulators.
+
+[4] AUDIT-READY ECOSYSTEM
+Every click, search, and decision is logged. When auditors arrive, there is 
+no scrambling for files—simply export the Audit Log or generate the relevant 
+Client Report directly from the UI.
+
+[5] PREMIUM USER EXPERIENCE
+A high-performance, dark-themed interface designed for long-shift attention. 
+Fast, responsive, and intuitive, ComplyArc feels more like a modern tech 
+product and less like legacy financial software.
+
+--------------------------------------------------------------------------------
+3. TECHNICAL INTEGRATION
+--------------------------------------------------------------------------------
+ComplyArc is built as an API-First platform. Every functionality in the web 
+interface is available via our secure REST API, allowing for seamless 
+integration into your existing core banking or CRM systems.
+
+================================================================================
+ComplyArc — Intelligence Behind Compliance.
+================================================================================
