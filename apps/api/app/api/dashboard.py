@@ -120,3 +120,93 @@ async def get_audit_log(
 ):
     """Get audit trail logs."""
     return await audit_service.list_logs(db, page, page_size, action, resource_type)
+
+
+@router.get("/risk-analytics")
+async def get_risk_analytics(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get aggregated risk analytics for charts."""
+    from app.models.risk_score import RiskScore
+
+    # Risk distribution
+    client_stats = await client_service.get_stats(db)
+
+    # Risk by country — aggregate clients by country
+    country_q = await db.execute(
+        select(
+            Client.country,
+            func.count(Client.id).label("clients"),
+            func.avg(Client.risk_score_total).label("avg_risk"),
+        )
+        .where(Client.country.isnot(None))
+        .group_by(Client.country)
+        .order_by(func.count(Client.id).desc())
+        .limit(10)
+    )
+    risk_by_country = [
+        {
+            "country": row.country or "Unknown",
+            "clients": row.clients,
+            "avg_risk": round(float(row.avg_risk or 0), 1),
+        }
+        for row in country_q.all()
+    ]
+
+    # Product risk — group by industry
+    industry_q = await db.execute(
+        select(
+            Client.industry,
+            func.avg(Client.risk_score_total).label("avg_risk"),
+            func.count(Client.id).label("clients"),
+        )
+        .where(Client.industry.isnot(None))
+        .group_by(Client.industry)
+        .order_by(func.avg(Client.risk_score_total).desc())
+        .limit(8)
+    )
+    product_risk = [
+        {
+            "product": row.industry or "Other",
+            "risk": round(float(row.avg_risk or 0), 1),
+            "clients": row.clients,
+        }
+        for row in industry_q.all()
+    ]
+
+    # Risk factor averages from latest scores
+    factor_q = await db.execute(
+        select(
+            func.avg(RiskScore.client_risk).label("client_avg"),
+            func.avg(RiskScore.geography_risk).label("geo_avg"),
+            func.avg(RiskScore.product_risk).label("product_avg"),
+            func.avg(RiskScore.interface_risk).label("interface_avg"),
+        )
+    )
+    factors_row = factor_q.one_or_none()
+    risk_factor_avg = [
+        {"factor": "Client Risk", "avg": round(float(factors_row.client_avg or 0), 1)},
+        {"factor": "Geography Risk", "avg": round(float(factors_row.geo_avg or 0), 1)},
+        {"factor": "Product Risk", "avg": round(float(factors_row.product_avg or 0), 1)},
+        {"factor": "Interface Risk", "avg": round(float(factors_row.interface_avg or 0), 1)},
+    ] if factors_row else []
+
+    return {
+        "risk_distribution": {
+            "high": client_stats["high_risk"],
+            "medium": client_stats["medium_risk"],
+            "low": client_stats["low_risk"],
+        },
+        "risk_by_country": risk_by_country,
+        "product_risk": product_risk,
+        "risk_factor_avg": risk_factor_avg,
+        "summary": {
+            "total_clients": client_stats["total"],
+            "high_risk_pct": round(client_stats["high_risk"] / max(client_stats["total"], 1) * 100, 1),
+            "avg_portfolio_risk": round(
+                sum(f["avg"] for f in risk_factor_avg) / max(len(risk_factor_avg), 1), 1
+            ) if risk_factor_avg else 0,
+            "countries": len(risk_by_country),
+        },
+    }

@@ -81,6 +81,9 @@ from app.api.risk import router as risk_router
 from app.api.cases import router as cases_router
 from app.api.media import router as media_router
 from app.api.dashboard import router as dashboard_router
+from app.api.alerts import router as alerts_router
+from app.api.monitoring_routes import router as monitoring_router
+from app.api.reports import router as reports_router
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(screening_router, prefix="/api/v1")
@@ -89,6 +92,9 @@ app.include_router(risk_router, prefix="/api/v1")
 app.include_router(cases_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
+app.include_router(alerts_router, prefix="/api/v1")
+app.include_router(monitoring_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
 
 
 # â”€â”€â”€ Health Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

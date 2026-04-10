@@ -1,5 +1,5 @@
 /**
- * ComplyArc â€” API Client
+ * ComplyArc — API Client
  * Centralized HTTP client for backend communication
  */
 
@@ -69,7 +69,7 @@ class ApiClient {
     return response.json();
   }
 
-  // â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— Auth ————————————————————————
   async login(email: string, password: string) {
     const data = await this.request<any>('/auth/login', {
       method: 'POST',
@@ -90,7 +90,7 @@ class ApiClient {
     return this.request<any>('/auth/me');
   }
 
-  // â”€â”€â”€ Screening â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— Screening ——————————————————
   async screenEntity(name: string, entityType: string = 'individual', options?: any) {
     return this.request<any>('/screen', {
       method: 'POST',
@@ -105,7 +105,7 @@ class ApiClient {
     });
   }
 
-  // â”€â”€â”€ Clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— Clients ————————————————————
   async listClients(params?: any) {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request<any>(`/clients${query}`);
@@ -127,7 +127,15 @@ class ApiClient {
     return this.request<any>(`/clients/${id}/activate`, { method: 'POST' });
   }
 
-  // â”€â”€â”€ Risk â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async getUBOs(clientId: string) {
+    return this.request<any>(`/clients/${clientId}/ubos`);
+  }
+
+  async addUBO(clientId: string, data: any) {
+    return this.request<any>(`/clients/${clientId}/ubos`, { method: 'POST', body: data });
+  }
+
+  // ——— Risk ————————————————————————
   async calculateRisk(clientId: string, overrides?: any) {
     return this.request<any>('/risk/calculate', {
       method: 'POST',
@@ -139,7 +147,7 @@ class ApiClient {
     return this.request<any>(`/risk/client/${clientId}`);
   }
 
-  // â”€â”€â”€ Cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— Cases ——————————————————————
   async listCases(params?: any) {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request<any>(`/cases${query}`);
@@ -164,7 +172,11 @@ class ApiClient {
     });
   }
 
-  // â”€â”€â”€ Adverse Media â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async getCaseNotes(caseId: string) {
+    return this.request<any>(`/cases/${caseId}/notes`);
+  }
+
+  // ——— Adverse Media ————————————————
   async searchMedia(entityName: string, clientId?: string) {
     return this.request<any>('/media/search', {
       method: 'POST',
@@ -172,9 +184,74 @@ class ApiClient {
     });
   }
 
-  // â”€â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— Alerts ————————————————————————
+  async listAlerts(params?: any) {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request<any>(`/alerts${query}`);
+  }
+
+  async getAlertStats() {
+    return this.request<any>('/alerts/stats');
+  }
+
+  async updateAlert(id: string, data: any) {
+    return this.request<any>(`/alerts/${id}`, { method: 'PATCH', body: data });
+  }
+
+  async markAllAlertsRead() {
+    return this.request<any>('/alerts/mark-all-read', { method: 'POST' });
+  }
+
+  // ——— Monitoring ——————————————————
+  async listMonitoring(params?: any) {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request<any>(`/monitoring${query}`);
+  }
+
+  async registerMonitoring(data: any) {
+    return this.request<any>('/monitoring', { method: 'POST', body: data });
+  }
+
+  async toggleMonitoring(id: string) {
+    return this.request<any>(`/monitoring/${id}/toggle`, { method: 'POST' });
+  }
+
+  async deleteMonitoring(id: string) {
+    return this.request<any>(`/monitoring/${id}`, { method: 'DELETE' });
+  }
+
+  // ——— Reports ————————————————————
+  async listReports(params?: any) {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request<any>(`/reports${query}`);
+  }
+
+  async generateReport(data: any) {
+    return this.request<any>('/reports/generate', { method: 'POST', body: data });
+  }
+
+  async downloadReport(id: string) {
+    const authToken = this.getToken();
+    const response = await fetch(`${this.baseUrl}/reports/${id}/download`, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    });
+    if (!response.ok) throw new Error('Download failed');
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report-${id}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ——— Dashboard ————————————————————
   async getDashboardStats() {
     return this.request<any>('/dashboard/stats');
+  }
+
+  async getRiskAnalytics() {
+    return this.request<any>('/dashboard/risk-analytics');
   }
 
   async getAuditLog(params?: any) {
@@ -182,7 +259,7 @@ class ApiClient {
     return this.request<any>(`/dashboard/audit-log${query}`);
   }
 
-  // â”€â”€â”€ Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— Admin ——————————————————————
   async ingestSanctions() {
     return this.request<any>('/admin/ingest-sanctions', { method: 'POST' });
   }

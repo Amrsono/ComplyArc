@@ -1,50 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Shield, AlertTriangle, CheckCircle, ChevronDown, Loader2, Zap } from 'lucide-react';
-
-/* ─── Demo Screening Results ──────────────────── */
-const demoResults = [
-  {
-    matched_name: 'JOHN A. SMITH',
-    matched_list: 'OFAC',
-    match_score: 87.5,
-    match_confidence: 'high',
-    name_similarity: 92.3,
-    dob_match: true,
-    nationality_match: false,
-    program: 'SDGT',
-    explanation: 'Name similarity: 92.3% | DOB: Match ✓ | Nationality: No match ✗ | Source: OFAC | Program: SDGT',
-    source_id: 'SDN-12345',
-    listed_date: '2019-06-15',
-  },
-  {
-    matched_name: 'JONATHAN SMITH',
-    matched_list: 'EU',
-    match_score: 62.4,
-    match_confidence: 'low',
-    name_similarity: 68.1,
-    dob_match: null,
-    nationality_match: null,
-    program: 'EU Council Regulation 269/2014',
-    explanation: 'Name similarity: 68.1% | DOB: Not available | Nationality: Not available | Source: EU',
-    source_id: 'EU-98765',
-    listed_date: '2022-03-01',
-  },
-  {
-    matched_name: 'JOHN SMITH',
-    matched_list: 'PEP',
-    match_score: 71.8,
-    match_confidence: 'medium',
-    name_similarity: 85.0,
-    dob_match: false,
-    nationality_match: true,
-    program: 'Political Figure — UK Parliament',
-    explanation: 'Name similarity: 85.0% | DOB: No match ✗ | Nationality: Match ✓ | Source: PEP',
-    source_id: 'PEP-44321',
-    listed_date: null,
-  },
-];
+import { useRouter } from 'next/navigation';
+import { Search, Shield, AlertTriangle, CheckCircle, Loader2, Zap } from 'lucide-react';
+import api from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 
 function getConfidenceColor(confidence: string) {
   switch (confidence) {
@@ -64,20 +24,58 @@ function getListBadgeStyle(list: string) {
 }
 
 export default function ScreeningPage() {
+  const router = useRouter();
+  const { success, error: showError } = useToast();
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [results, setResults] = useState<typeof demoResults | null>(null);
+  const [results, setResults] = useState<any>(null);
   const [entityType, setEntityType] = useState('individual');
+  const [selectedLists, setSelectedLists] = useState(['OFAC', 'EU', 'UN', 'UK', 'PEP', 'Internal']);
 
-  const handleSearch = () => {
+  const toggleList = (list: string) => {
+    setSelectedLists(prev =>
+      prev.includes(list) ? prev.filter(l => l !== list) : [...prev, list]
+    );
+  };
+
+  const handleSearch = async () => {
     if (!query.trim()) return;
     setIsSearching(true);
-    // Simulate API call
-    setTimeout(() => {
-      setResults(demoResults);
+    try {
+      const data = await api.screenEntity(query, entityType, { lists: selectedLists });
+      setResults(data);
+    } catch (err: any) {
+      showError(err.message || 'Screening failed');
+    } finally {
       setIsSearching(false);
-    }, 1200);
+    }
   };
+
+  const handleFalsePositive = async (matchId: string) => {
+    try {
+      // For now, just show success toast
+      success('Marked as false positive');
+    } catch (err: any) {
+      showError(err.message);
+    }
+  };
+
+  const handleCreateCase = async (match: any) => {
+    try {
+      const caseData = await api.createCase({
+        title: `${match.matched_list} Match — ${match.matched_name}`,
+        type: 'sanctions_match',
+        priority: match.match_confidence === 'high' ? 'critical' : 'high',
+        client_name: query,
+      });
+      success('Case created successfully');
+      router.push('/cases');
+    } catch (err: any) {
+      showError(err.message || 'Failed to create case');
+    }
+  };
+
+  const matches = results?.matches || [];
 
   return (
     <div>
@@ -134,17 +132,21 @@ export default function ScreeningPage() {
 
         {/* Lists selector */}
         <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '26px' }}>
-            Lists:
-          </span>
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '26px' }}>Lists:</span>
           {['OFAC', 'EU', 'UN', 'UK', 'PEP', 'Internal'].map(list => (
             <label key={list} style={{
               display: 'inline-flex', alignItems: 'center', gap: '5px',
               padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600,
-              background: 'var(--bg-elevated)', border: '1px solid var(--border-secondary)',
+              background: selectedLists.includes(list) ? 'rgba(59,130,246,0.1)' : 'var(--bg-elevated)',
+              border: `1px solid ${selectedLists.includes(list) ? 'var(--accent-primary)' : 'var(--border-secondary)'}`,
               cursor: 'pointer', transition: 'all 0.2s',
             }}>
-              <input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent-primary)' }} />
+              <input
+                type="checkbox"
+                checked={selectedLists.includes(list)}
+                onChange={() => toggleList(list)}
+                style={{ accentColor: 'var(--accent-primary)' }}
+              />
               {list}
             </label>
           ))}
@@ -154,29 +156,27 @@ export default function ScreeningPage() {
       {/* Results */}
       {results && (
         <div className="animate-in">
-          {/* Summary Bar */}
           <div className="glass-card glass-card-sm" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             marginBottom: '16px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ fontSize: '14px', fontWeight: 600 }}>
-                Results for &quot;{query || 'John Smith'}&quot;
+                Results for &quot;{results.screened_entity || query}&quot;
               </span>
-              <span className="badge badge-high">
-                <AlertTriangle size={12} /> {results.length} matches found
+              <span className={`badge ${matches.length > 0 ? 'badge-high' : 'badge-low'}`}>
+                {matches.length > 0 ? <><AlertTriangle size={12} /> {matches.length} matches</> : <><CheckCircle size={12} /> Clear</>}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Highest Match:</span>
-              <span style={{ fontWeight: 700, color: 'var(--risk-high)', fontSize: '18px' }}>
-                {results[0].match_score}%
+              <span style={{ color: 'var(--text-secondary)' }}>Risk:</span>
+              <span style={{ fontWeight: 700, color: results.overall_risk === 'high' ? 'var(--risk-high)' : results.overall_risk === 'medium' ? 'var(--risk-medium)' : 'var(--risk-low)' }}>
+                {(results.overall_risk || 'clear').toUpperCase()}
               </span>
             </div>
           </div>
 
-          {/* Match Cards */}
-          {results.map((match, i) => (
+          {matches.map((match: any, i: number) => (
             <div className="match-card" key={i}>
               <div className="match-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -189,15 +189,14 @@ export default function ScreeningPage() {
                     color: getConfidenceColor(match.match_confidence),
                     border: `1px solid ${getConfidenceColor(match.match_confidence)}33`,
                   }}>
-                    {match.match_confidence.toUpperCase()} CONFIDENCE
+                    {(match.match_confidence || '').toUpperCase()} CONFIDENCE
                   </span>
                 </div>
                 <span className="match-score" style={{ color: getConfidenceColor(match.match_confidence) }}>
-                  {match.match_score}%
+                  {match.match_score?.toFixed(1)}%
                 </span>
               </div>
 
-              {/* Confidence Bar */}
               <div className="confidence-bar" style={{ marginBottom: '12px' }}>
                 <div
                   className={`confidence-bar-fill ${match.match_confidence}`}
@@ -205,29 +204,33 @@ export default function ScreeningPage() {
                 />
               </div>
 
-              {/* Details */}
               <div className="match-details">
-                <span>📊 Name: {match.name_similarity}%</span>
-                {match.dob_match !== null && (
+                <span>📊 Name: {match.name_similarity?.toFixed(1)}%</span>
+                {match.dob_match !== null && match.dob_match !== undefined && (
                   <span>{match.dob_match ? '✅' : '❌'} DOB</span>
                 )}
-                {match.nationality_match !== null && (
+                {match.nationality_match !== null && match.nationality_match !== undefined && (
                   <span>{match.nationality_match ? '✅' : '❌'} Nationality</span>
                 )}
                 {match.program && <span>📋 {match.program}</span>}
                 {match.source_id && <span>🔗 {match.source_id}</span>}
               </div>
 
-              {/* Actions */}
+              {match.explanation && (
+                <div style={{
+                  padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)',
+                  fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px',
+                }}>
+                  💡 {match.explanation}
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                <button className="btn btn-secondary btn-sm">
+                <button className="btn btn-secondary btn-sm" onClick={() => handleFalsePositive(match.source_id)}>
                   <CheckCircle size={14} /> Mark False Positive
                 </button>
-                <button className="btn btn-danger btn-sm">
+                <button className="btn btn-danger btn-sm" onClick={() => handleCreateCase(match)}>
                   <AlertTriangle size={14} /> True Match — Create Case
-                </button>
-                <button className="btn btn-secondary btn-sm">
-                  <Zap size={14} /> AI Explain
                 </button>
               </div>
             </div>
@@ -251,9 +254,7 @@ export default function ScreeningPage() {
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

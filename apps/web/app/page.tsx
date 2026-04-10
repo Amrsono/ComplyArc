@@ -1,46 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Users, ShieldAlert, Search, AlertTriangle, TrendingUp, TrendingDown,
-  Activity, Eye, Shield, Zap, ArrowUpRight, Clock
+  Activity, Eye, Shield, Zap, ArrowUpRight, Clock, Loader2
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid, AreaChart, Area,
+  PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
 } from 'recharts';
-
-/* ─── Demo Data ───────────────────────────────── */
-const riskDistribution = [
-  { name: 'High', value: 320, color: '#ef4444' },
-  { name: 'Medium', value: 1940, color: '#f59e0b' },
-  { name: 'Low', value: 10190, color: '#10b981' },
-];
-
-const screeningTrend = [
-  { date: 'Jan', screenings: 420, matches: 32 },
-  { date: 'Feb', screenings: 510, matches: 45 },
-  { date: 'Mar', screenings: 680, matches: 38 },
-  { date: 'Apr', screenings: 590, matches: 52 },
-  { date: 'May', screenings: 750, matches: 41 },
-  { date: 'Jun', screenings: 890, matches: 67 },
-  { date: 'Jul', screenings: 820, matches: 55 },
-];
-
-const casesByType = [
-  { type: 'Sanctions', count: 24 },
-  { type: 'PEP', count: 18 },
-  { type: 'Adverse Media', count: 31 },
-  { type: 'Risk Escalation', count: 11 },
-];
-
-const recentAlerts = [
-  { id: '1', severity: 'high', type: 'Sanctions Match', client: 'XYZ Trading Ltd', desc: 'OFAC SDN list match — 91% confidence', time: '12 min ago' },
-  { id: '2', severity: 'high', type: 'Adverse Media', client: 'ABC Trading LLC', desc: 'Fraud allegations in Financial Times', time: '34 min ago' },
-  { id: '3', severity: 'medium', type: 'Risk Increase', client: 'DEF Holdings', desc: 'Risk score increased from 2.8 to 4.1', time: '1 hour ago' },
-  { id: '4', severity: 'medium', type: 'PEP Match', client: 'Ahmed Al-Rashid', desc: 'Close associate of PEP identified', time: '2 hours ago' },
-  { id: '5', severity: 'low', type: 'Monitoring Alert', client: 'Pacific Ventures KK', desc: 'Status changed to dormant — 180 days inactive', time: '3 hours ago' },
-];
+import api from '@/lib/api';
 
 /* ─── Animated Counter ────────────────────────── */
 function AnimatedNumber({ value, duration = 1200 }: { value: number; duration?: number }) {
@@ -70,7 +40,7 @@ function CustomTooltip({ active, payload, label }: any) {
       {payload.map((p: any, i: number) => (
         <div key={i} style={{ color: p.color, display: 'flex', gap: 8 }}>
           <span>{p.name}:</span>
-          <span style={{ fontWeight: 600 }}>{p.value.toLocaleString()}</span>
+          <span style={{ fontWeight: 600 }}>{p.value?.toLocaleString()}</span>
         </div>
       ))}
     </div>
@@ -78,6 +48,69 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await api.getDashboardStats();
+      setStats(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent-primary)' }} />
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '60px' }}>
+        <AlertTriangle size={40} style={{ color: 'var(--risk-medium)', marginBottom: '12px' }} />
+        <h3>Failed to load dashboard</h3>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>{error}</p>
+        <button className="btn btn-primary" onClick={fetchData}>Retry</button>
+      </div>
+    );
+  }
+
+  const s = stats.stats || {};
+  const riskDist = stats.risk_distribution || {};
+  const riskDistribution = [
+    { name: 'High', value: riskDist.high || 0, color: '#ef4444' },
+    { name: 'Medium', value: riskDist.medium || 0, color: '#f59e0b' },
+    { name: 'Low', value: riskDist.low || 0, color: '#10b981' },
+  ];
+
+  const casesByStatus = stats.cases_by_status || {};
+  const casesByType = [
+    { type: 'Open', count: casesByStatus.open || 0 },
+    { type: 'Under Review', count: casesByStatus.under_review || 0 },
+    { type: 'Escalated', count: casesByStatus.escalated || 0 },
+    { type: 'Closed', count: casesByStatus.closed || 0 },
+  ];
+
+  const recentAlerts = (stats.recent_alerts || []).map((a: any, i: number) => ({
+    id: a.id || String(i),
+    severity: a.severity || 'medium',
+    type: a.type === 'sanctions_match' ? 'Sanctions Match' : a.type === 'adverse_media' ? 'Adverse Media' : a.type,
+    client: a.client_name || 'Unknown',
+    desc: a.description || '',
+    time: a.created_at ? new Date(a.created_at).toLocaleString() : '',
+  }));
+
   return (
     <div>
       {/* Page Header */}
@@ -88,10 +121,10 @@ export default function DashboardPage() {
             <p>Real-time overview of your compliance operations</p>
           </div>
           <div className="flex gap-2">
-            <button className="btn btn-secondary btn-sm">
-              <Clock size={14} /> Last 30 Days
+            <button className="btn btn-secondary btn-sm" onClick={fetchData}>
+              <Clock size={14} /> Refresh
             </button>
-            <button className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={() => router.push('/screening')}>
               <Zap size={14} /> Quick Screen
             </button>
           </div>
@@ -105,8 +138,8 @@ export default function DashboardPage() {
             <span className="kpi-label">Total Clients</span>
             <div className="kpi-icon"><Users size={20} /></div>
           </div>
-          <div className="kpi-value"><AnimatedNumber value={12450} /></div>
-          <div className="kpi-trend up"><TrendingUp size={12} /> +124 this month</div>
+          <div className="kpi-value"><AnimatedNumber value={s.total_clients || 0} /></div>
+          <div className="kpi-trend up"><TrendingUp size={12} /> {s.active_clients || 0} active</div>
         </div>
 
         <div className="kpi-card danger animate-in animate-in-delay-2" id="kpi-high-risk">
@@ -115,9 +148,9 @@ export default function DashboardPage() {
             <div className="kpi-icon"><AlertTriangle size={20} /></div>
           </div>
           <div className="kpi-value" style={{ color: 'var(--risk-high)' }}>
-            <AnimatedNumber value={320} />
+            <AnimatedNumber value={s.high_risk_clients || 0} />
           </div>
-          <div className="kpi-trend down"><TrendingDown size={12} /> +18 this week</div>
+          <div className="kpi-trend down"><TrendingDown size={12} /> {s.pending_clients || 0} pending</div>
         </div>
 
         <div className="kpi-card warning animate-in animate-in-delay-3" id="kpi-active-cases">
@@ -126,9 +159,9 @@ export default function DashboardPage() {
             <div className="kpi-icon"><ShieldAlert size={20} /></div>
           </div>
           <div className="kpi-value" style={{ color: 'var(--risk-medium)' }}>
-            <AnimatedNumber value={84} />
+            <AnimatedNumber value={s.active_cases || 0} />
           </div>
-          <div className="kpi-trend up"><ArrowUpRight size={12} /> 27 pending review</div>
+          <div className="kpi-trend up"><ArrowUpRight size={12} /> {s.pending_review_cases || 0} pending review</div>
         </div>
 
         <div className="kpi-card success animate-in animate-in-delay-4" id="kpi-screenings">
@@ -137,9 +170,9 @@ export default function DashboardPage() {
             <div className="kpi-icon"><Search size={20} /></div>
           </div>
           <div className="kpi-value" style={{ color: 'var(--risk-low)' }}>
-            <AnimatedNumber value={247} />
+            <AnimatedNumber value={s.screenings_today || 0} />
           </div>
-          <div className="kpi-trend up"><TrendingUp size={12} /> +12% vs yesterday</div>
+          <div className="kpi-trend up"><TrendingUp size={12} /> {s.total_screenings || 0} total</div>
         </div>
       </div>
 
@@ -153,13 +186,9 @@ export default function DashboardPage() {
               <PieChart>
                 <Pie
                   data={riskDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={3}
-                  dataKey="value"
-                  stroke="none"
+                  cx="50%" cy="50%"
+                  innerRadius={55} outerRadius={85}
+                  paddingAngle={3} dataKey="value" stroke="none"
                 >
                   {riskDistribution.map((entry, i) => (
                     <Cell key={i} fill={entry.color} />
@@ -171,10 +200,7 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {riskDistribution.map((item) => (
                 <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: 10, height: 10, borderRadius: '50%',
-                    background: item.color,
-                  }} />
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
                   <div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.name}</div>
                     <div style={{ fontSize: '16px', fontWeight: 700 }}>{item.value.toLocaleString()}</div>
@@ -185,39 +211,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Screening Trend Line */}
+        {/* Cases by Status */}
         <div className="chart-card animate-in animate-in-delay-3">
-          <h3>Screening Activity</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={screeningTrend}>
-              <defs>
-                <linearGradient id="gradBlue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.06)" />
-              <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={11} />
-              <YAxis stroke="var(--text-muted)" fontSize={11} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone" dataKey="screenings" stroke="#3b82f6"
-                fill="url(#gradBlue)" strokeWidth={2} name="Screenings"
-              />
-              <Area
-                type="monotone" dataKey="matches" stroke="#ef4444"
-                fill="none" strokeWidth={2} strokeDasharray="5 5" name="Matches"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Second Row: Cases by Type + Alerts */}
-      <div className="charts-grid">
-        {/* Cases Bar Chart */}
-        <div className="chart-card animate-in animate-in-delay-3">
-          <h3>Cases by Type</h3>
+          <h3>Cases by Status</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={casesByType}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.06)" />
@@ -228,34 +224,38 @@ export default function DashboardPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
 
-        {/* Recent Alerts */}
-        <div className="chart-card animate-in animate-in-delay-4">
-          <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            Recent Alerts
-            <span className="badge badge-high" style={{ fontSize: '10px' }}>
-              {recentAlerts.filter(a => a.severity === 'high').length} Critical
-            </span>
-          </h3>
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            {recentAlerts.map((alert) => (
-              <div className="alert-item" key={alert.id}>
-                <div className={`alert-dot ${alert.severity}`} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600 }}>{alert.type}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{alert.time}</span>
-                  </div>
-                  <div style={{ fontSize: '13px', fontWeight: 500 }}>{alert.client}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>
-                    {alert.desc}
-                  </div>
+      {/* Recent Alerts */}
+      <div className="chart-card animate-in animate-in-delay-4">
+        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          Recent Alerts
+          <button className="btn btn-secondary btn-sm" onClick={() => router.push('/alerts')}>
+            View All
+          </button>
+        </h3>
+        <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+          {recentAlerts.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)', fontSize: '13px' }}>
+              No recent alerts
+            </div>
+          ) : recentAlerts.map((alert: any) => (
+            <div className="alert-item" key={alert.id} style={{ cursor: 'pointer' }} onClick={() => router.push('/alerts')}>
+              <div className={`alert-dot ${alert.severity}`} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600 }}>{alert.type}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{alert.time}</span>
                 </div>
+                <div style={{ fontSize: '13px', fontWeight: 500 }}>{alert.client}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>{alert.desc}</div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
