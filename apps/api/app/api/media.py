@@ -1,5 +1,5 @@
 """
-Cortex AML — Media API Routes
+ComplyArc â€” Media API Routes
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,7 +33,7 @@ async def search_media(
         resource_type="adverse_media",
         user_id=user.id,
         user_email=user.email,
-        description=f"Adverse media search: {request.entity_name} — {result.total_hits} hits",
+        description=f"Adverse media search: {request.entity_name} â€” {result.total_hits} hits",
     )
 
     return result

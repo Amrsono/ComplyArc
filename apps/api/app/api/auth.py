@@ -1,5 +1,5 @@
 """
-Cortex AML — Auth API Routes
+ComplyArc â€” Auth API Routes
 """
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status

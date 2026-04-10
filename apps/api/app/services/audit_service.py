@@ -1,5 +1,5 @@
 """
-Cortex AML — Audit Service
+ComplyArc â€” Audit Service
 Immutable audit trail logging for compliance
 """
 import json

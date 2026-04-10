@@ -1,5 +1,5 @@
 """
-Cortex AML — Risk Score Model
+ComplyArc â€” Risk Score Model
 Multi-factor risk scoring: CRR + GRR + PRR + IRR
 """
 import uuid
@@ -19,26 +19,26 @@ class RiskScore(Base):
         String(36), ForeignKey("clients.id"), nullable=False, index=True
     )
 
-    # ─── Risk Factors (1-5 scale) ─────────────────
+    # â”€â”€â”€ Risk Factors (1-5 scale) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     client_risk: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     geography_risk: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     product_risk: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     interface_risk: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
 
-    # ─── Weighted Total ───────────────────────────
+    # â”€â”€â”€ Weighted Total â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     total_score: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     risk_level: Mapped[str] = mapped_column(String(20), nullable=False, default="low")
 
-    # ─── Factor Explanations ──────────────────────
+    # â”€â”€â”€ Factor Explanations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     client_risk_factors: Mapped[str] = mapped_column(Text, nullable=True)  # JSON array
     geography_risk_factors: Mapped[str] = mapped_column(Text, nullable=True)
     product_risk_factors: Mapped[str] = mapped_column(Text, nullable=True)
     interface_risk_factors: Mapped[str] = mapped_column(Text, nullable=True)
 
-    # ─── AI Summary ───────────────────────────────
+    # â”€â”€â”€ AI Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     ai_summary: Mapped[str] = mapped_column(Text, nullable=True)
 
-    # ─── Metadata ─────────────────────────────────
+    # â”€â”€â”€ Metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     calculated_by: Mapped[str] = mapped_column(String(36), nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(

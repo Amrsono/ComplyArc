@@ -1,6 +1,6 @@
 """
-Cortex AML — Case Management Service
-Alert → investigation → resolution workflow
+ComplyArc â€” Case Management Service
+Alert â†’ investigation â†’ resolution workflow
 """
 import logging
 from typing import Optional

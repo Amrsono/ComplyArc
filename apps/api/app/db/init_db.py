@@ -1,5 +1,5 @@
 """
-Cortex AML — Database Initialization
+ComplyArc â€” Database Initialization
 Create tables and seed default data
 """
 import logging
@@ -17,22 +17,22 @@ async def init_db(db: AsyncSession):
     from sqlalchemy import select
 
     # Check if admin exists
-    result = await db.execute(select(User).where(User.email == "admin@cortexaml.com"))
+    result = await db.execute(select(User).where(User.email == "admin@complyarc.com"))
     admin = result.scalar_one_or_none()
 
     if not admin:
         admin = User(
-            email="admin@cortexaml.com",
+            email="admin@complyarc.com",
             hashed_password=hash_password("admin123"),
             full_name="System Administrator",
             role="admin",
-            organization="Cortex AML",
+            organization="ComplyArc",
             is_active=True,
             is_verified=True,
         )
         db.add(admin)
         await db.flush()
-        logger.info("Created default admin user: admin@cortexaml.com / admin123")
+        logger.info("Created default admin user: admin@complyarc.com / admin123")
 
     # Seed demo clients
     from app.models.client import Client

@@ -1,5 +1,5 @@
 """
-Cortex AML — Client & API Key Models
+ComplyArc â€” Client & API Key Models
 KYC clients (individual/corporate) with full lifecycle management
 """
 import uuid
@@ -29,12 +29,12 @@ class Client(Base):
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    # ─── Identity ─────────────────────────────────
+    # â”€â”€â”€ Identity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     name: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
     type: Mapped[str] = mapped_column(String(20), nullable=False, default=ClientType.INDIVIDUAL)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=ClientStatus.PENDING)
 
-    # ─── Individual Fields ────────────────────────
+    # â”€â”€â”€ Individual Fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     first_name: Mapped[str] = mapped_column(String(255), nullable=True)
     last_name: Mapped[str] = mapped_column(String(255), nullable=True)
     date_of_birth: Mapped[str] = mapped_column(String(10), nullable=True)  # YYYY-MM-DD
@@ -42,30 +42,30 @@ class Client(Base):
     id_number: Mapped[str] = mapped_column(String(100), nullable=True)
     id_type: Mapped[str] = mapped_column(String(50), nullable=True)  # passport, national_id, etc.
 
-    # ─── Corporate Fields ─────────────────────────
+    # â”€â”€â”€ Corporate Fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     registration_number: Mapped[str] = mapped_column(String(100), nullable=True)
     incorporation_country: Mapped[str] = mapped_column(String(3), nullable=True)
     incorporation_date: Mapped[str] = mapped_column(String(10), nullable=True)
     industry: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    # ─── Contact ──────────────────────────────────
+    # â”€â”€â”€ Contact â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     email: Mapped[str] = mapped_column(String(255), nullable=True)
     phone: Mapped[str] = mapped_column(String(50), nullable=True)
     address: Mapped[str] = mapped_column(Text, nullable=True)
     country: Mapped[str] = mapped_column(String(3), nullable=True)
 
-    # ─── Risk ─────────────────────────────────────
+    # â”€â”€â”€ Risk â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     risk_score: Mapped[float] = mapped_column(Float, nullable=True)
     risk_level: Mapped[str] = mapped_column(String(20), nullable=True)  # high, medium, low
     pep_status: Mapped[bool] = mapped_column(Boolean, default=False)
     sanctions_hit: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    # ─── Product/Interface Risk Inputs ────────────
+    # â”€â”€â”€ Product/Interface Risk Inputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     product_type: Mapped[str] = mapped_column(String(100), nullable=True)
     interface_type: Mapped[str] = mapped_column(String(50), nullable=True)  # direct, intermediary
     onboarding_channel: Mapped[str] = mapped_column(String(50), nullable=True)  # face_to_face, remote
 
-    # ─── Metadata ─────────────────────────────────
+    # â”€â”€â”€ Metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     assigned_officer: Mapped[str] = mapped_column(String(36), nullable=True)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
     onboarding_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)

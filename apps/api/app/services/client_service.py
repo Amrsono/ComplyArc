@@ -1,5 +1,5 @@
 """
-Cortex AML — Client Service
+ComplyArc â€” Client Service
 Client lifecycle management (CRUD + status transitions)
 """
 import logging

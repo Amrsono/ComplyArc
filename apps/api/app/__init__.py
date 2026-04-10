@@ -1,3 +1,3 @@
 """
-Cortex AML — Application Package
+ComplyArc â€” Application Package
 """

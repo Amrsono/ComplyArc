@@ -1,5 +1,5 @@
 """
-Cortex AML — Core Configuration
+ComplyArc â€” Core Configuration
 Typed settings via Pydantic BaseSettings
 """
 from pydantic_settings import BaseSettings
@@ -8,16 +8,16 @@ import os
 
 
 class Settings(BaseSettings):
-    # ─── Application ──────────────────────────────
-    APP_NAME: str = "Cortex AML"
+    # â”€â”€â”€ Application â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    APP_NAME: str = "ComplyArc"
     APP_VERSION: str = "1.0.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     PORT: int = 8000
 
-    # ─── Database ─────────────────────────────────
-    DATABASE_URL: str = "postgresql+asyncpg://cortex:cortex_secret@localhost:5432/cortex_aml"
-    DATABASE_URL_SYNC: str = "postgresql://cortex:cortex_secret@localhost:5432/cortex_aml"
+    # â”€â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    DATABASE_URL: str = "postgresql+asyncpg://complyarc:complyarc_secret@localhost:5432/complyarc"
+    DATABASE_URL_SYNC: str = "postgresql://complyarc:complyarc_secret@localhost:5432/complyarc"
 
     @property
     def database_url_async(self) -> str:
@@ -39,36 +39,36 @@ class Settings(BaseSettings):
             url = url.replace("postgresql+asyncpg://", "postgresql://", 1)
         return url
 
-    # ─── Redis ────────────────────────────────────
+    # â”€â”€â”€ Redis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # ─── Security ─────────────────────────────────
-    SECRET_KEY: str = "cortex-dev-secret-key-change-me-in-production"
+    # â”€â”€â”€ Security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    SECRET_KEY: str = "complyarc-dev-secret-key-change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 1440  # 24 hours
     API_KEY_HEADER: str = "X-API-Key"
 
-    # ─── CORS ─────────────────────────────────────
+    # â”€â”€â”€ CORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     CORS_ORIGINS: str = "http://localhost:3000"
 
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
 
-    # ─── OpenAI ───────────────────────────────────
+    # â”€â”€â”€ OpenAI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o"
 
-    # ─── News API ─────────────────────────────────
+    # â”€â”€â”€ News API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     NEWS_API_KEY: str = ""
 
-    # ─── Sanctions Data ───────────────────────────
+    # â”€â”€â”€ Sanctions Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     OFAC_SDN_URL: str = "https://www.treasury.gov/ofac/downloads/sdn.xml"
     EU_SANCTIONS_URL: str = "https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
     UN_SANCTIONS_URL: str = "https://scsanctions.un.org/resources/xml/en/consolidated.xml"
     UK_SANCTIONS_URL: str = "https://assets.publishing.service.gov.uk/media/65a8a29f867c2b000d6e8e19/UK_Sanctions_List.ods"
 
-    # ─── Screening Thresholds ─────────────────────
+    # â”€â”€â”€ Screening Thresholds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     MATCH_THRESHOLD_HIGH: float = 85.0
     MATCH_THRESHOLD_MEDIUM: float = 70.0
     MATCH_THRESHOLD_LOW: float = 50.0

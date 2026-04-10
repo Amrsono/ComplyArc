@@ -1,5 +1,5 @@
 """
-Cortex AML — Screening Schemas
+ComplyArc â€” Screening Schemas
 """
 from pydantic import BaseModel
 from typing import Optional, List
@@ -13,7 +13,7 @@ class ScreenRequest(BaseModel):
     nationality: Optional[str] = None
     id_number: Optional[str] = None
     country: Optional[str] = None
-    lists: Optional[List[str]] = None  # ["OFAC", "EU", "UN", "UK", "PEP"] — None = all
+    lists: Optional[List[str]] = None  # ["OFAC", "EU", "UN", "UK", "PEP"] â€” None = all
 
     class Config:
         json_schema_extra = {

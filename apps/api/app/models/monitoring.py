@@ -1,5 +1,5 @@
 """
-Cortex AML — Monitoring Model
+ComplyArc â€” Monitoring Model
 Continuous screening configuration
 """
 import uuid

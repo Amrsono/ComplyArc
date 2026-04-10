@@ -31,9 +31,9 @@ export function Sidebar() {
     <aside className="sidebar" id="main-sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon">C</div>
+        <div className="logo-icon">CA</div>
         <div className="logo-text">
-          <h1>Cortex AML</h1>
+          <h1>ComplyArc</h1>
           <span>Risk Intelligence</span>
         </div>
       </div>
@@ -89,7 +89,7 @@ export function Sidebar() {
           }} />
           System Operational
         </div>
-        <div style={{ marginTop: '4px', opacity: 0.6 }}>v1.0.0 — Enterprise</div>
+        <div style={{ marginTop: '4px', opacity: 0.6 }}>v1.0.0 â€” Enterprise</div>
       </div>
     </aside>
   );

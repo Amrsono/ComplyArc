@@ -1,5 +1,5 @@
 """
-Cortex AML — Sanctions Data Ingestor
+ComplyArc â€” Sanctions Data Ingestor
 Downloads and parses OFAC/EU/UN/UK sanctions lists into normalized entries
 """
 import json
@@ -76,7 +76,7 @@ class SanctionsIngestor:
             ns = {"sdn": ns_uri.strip("{}")}
 
         entries = []
-        # Parse SDN entries — handle both namespaced and non-namespaced XML
+        # Parse SDN entries â€” handle both namespaced and non-namespaced XML
         for entry in root.iter():
             if entry.tag.endswith("sdnEntry") or entry.tag == "sdnEntry":
                 try:

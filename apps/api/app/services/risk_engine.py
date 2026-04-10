@@ -1,5 +1,5 @@
 """
-Cortex AML — Risk Engine Service
+ComplyArc â€” Risk Engine Service
 Multi-factor risk scoring: CRR (0.4) + GRR (0.2) + PRR (0.2) + IRR (0.2)
 """
 import json
@@ -16,7 +16,7 @@ from app.models.ubo import UBO
 from app.schemas.risk import RiskCalculateRequest, RiskResponse, RiskBreakdown, RiskFactorDetail
 
 
-# ─── FATF High-Risk / Monitored Jurisdictions ────
+# â”€â”€â”€ FATF High-Risk / Monitored Jurisdictions â”€â”€â”€â”€
 FATF_BLACKLIST = {"KP", "IR", "MM"}  # North Korea, Iran, Myanmar
 FATF_GREYLIST = {
     "BF", "CM", "CD", "HR", "HT", "KE", "ML", "MZ", "NG", "PH",
@@ -27,7 +27,7 @@ HIGH_CORRUPTION_COUNTRIES = {
     "ER", "IQ", "TM", "HT", "BI", "CF",
 }
 
-# ─── Product Risk Mappings ────────────────────────
+# â”€â”€â”€ Product Risk Mappings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 HIGH_RISK_PRODUCTS = {
     "cash_services", "money_transfer", "trade_finance", "correspondent_banking",
     "private_banking", "shell_company", "trust_services", "crypto_exchange",
@@ -47,7 +47,7 @@ class RiskEngine:
     """
     Multi-factor risk scoring engine with explainable output.
     
-    Formula: Total = (0.4 × CRR) + (0.2 × GRR) + (0.2 × PRR) + (0.2 × IRR)
+    Formula: Total = (0.4 Ã— CRR) + (0.2 Ã— GRR) + (0.2 Ã— PRR) + (0.2 Ã— IRR)
     Each factor scored 1-5.
     """
 
@@ -59,7 +59,7 @@ class RiskEngine:
     async def calculate_client_risk(
         self, db: AsyncSession, client: Client
     ) -> Tuple[float, List[str]]:
-        """Calculate Client Risk Rating (CRR) — 1 to 5."""
+        """Calculate Client Risk Rating (CRR) â€” 1 to 5."""
         score = 1.0
         factors = []
 
@@ -114,13 +114,13 @@ class RiskEngine:
         return (min(max(score, 1.0), 5.0), factors)
 
     def calculate_geography_risk(self, client: Client) -> Tuple[float, List[str]]:
-        """Calculate Geography Risk Rating (GRR) — 1 to 5."""
+        """Calculate Geography Risk Rating (GRR) â€” 1 to 5."""
         score = 1.0
         factors = []
         country = (client.country or client.nationality or client.incorporation_country or "").upper()
 
         if not country:
-            factors.append("Country not specified — default low risk")
+            factors.append("Country not specified â€” default low risk")
             return (1.0, factors)
 
         if country in FATF_BLACKLIST:
@@ -133,17 +133,17 @@ class RiskEngine:
             score = max(score, 3.5)
             factors.append(f"Country {country} has high corruption index")
         else:
-            factors.append(f"Country {country} — standard risk jurisdiction")
+            factors.append(f"Country {country} â€” standard risk jurisdiction")
 
         return (min(max(score, 1.0), 5.0), factors)
 
     def calculate_product_risk(self, client: Client) -> Tuple[float, List[str]]:
-        """Calculate Product Risk Rating (PRR) — 1 to 5."""
+        """Calculate Product Risk Rating (PRR) â€” 1 to 5."""
         product = (client.product_type or "").lower().replace(" ", "_")
         factors = []
 
         if not product:
-            factors.append("Product type not specified — default low risk")
+            factors.append("Product type not specified â€” default low risk")
             return (1.0, factors)
 
         if product in HIGH_RISK_PRODUCTS:
@@ -156,11 +156,11 @@ class RiskEngine:
             factors.append(f"Low-risk product: {client.product_type}")
             return (1.0, factors)
         else:
-            factors.append(f"Product type: {client.product_type} — default medium risk")
+            factors.append(f"Product type: {client.product_type} â€” default medium risk")
             return (2.5, factors)
 
     def calculate_interface_risk(self, client: Client) -> Tuple[float, List[str]]:
-        """Calculate Interface Risk Rating (IRR) — 1 to 5."""
+        """Calculate Interface Risk Rating (IRR) â€” 1 to 5."""
         score = 1.0
         factors = []
 

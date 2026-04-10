@@ -1,5 +1,5 @@
 """
-Cortex AML — Dashboard API Routes
+ComplyArc â€” Dashboard API Routes
 """
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, Query

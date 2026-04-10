@@ -1,5 +1,5 @@
 """
-Cortex AML — Auth Schemas
+ComplyArc â€” Auth Schemas
 """
 from pydantic import BaseModel, EmailStr
 from typing import Optional

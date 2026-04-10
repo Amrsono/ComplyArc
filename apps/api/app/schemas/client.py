@@ -1,5 +1,5 @@
 """
-Cortex AML — Client Schemas
+ComplyArc â€” Client Schemas
 """
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List

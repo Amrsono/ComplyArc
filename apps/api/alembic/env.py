@@ -1,5 +1,5 @@
 """
-Cortex AML — Alembic Environment Configuration
+ComplyArc â€” Alembic Environment Configuration
 Supports async SQLAlchemy for PostgreSQL migrations
 """
 import asyncio

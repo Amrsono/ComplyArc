@@ -1,6 +1,6 @@
 """
-Cortex AML — Case Management Model
-Alert → investigation → resolution workflow
+ComplyArc â€” Case Management Model
+Alert â†’ investigation â†’ resolution workflow
 """
 import uuid
 from datetime import datetime, timezone
@@ -36,7 +36,7 @@ class Case(Base):
         String(36), ForeignKey("clients.id"), nullable=False, index=True
     )
 
-    # ─── Case Details ─────────────────────────────
+    # â”€â”€â”€ Case Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     case_type: Mapped[str] = mapped_column(
@@ -45,20 +45,20 @@ class Case(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=CaseStatus.OPEN)
     priority: Mapped[str] = mapped_column(String(20), nullable=False, default=CasePriority.MEDIUM)
 
-    # ─── Assignment ───────────────────────────────
+    # â”€â”€â”€ Assignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     assigned_to: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=True)
     escalated_to: Mapped[str] = mapped_column(String(36), nullable=True)
 
-    # ─── Resolution ───────────────────────────────
+    # â”€â”€â”€ Resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     resolution: Mapped[str] = mapped_column(Text, nullable=True)
     sar_filed: Mapped[bool] = mapped_column(default=False)  # Suspicious Activity Report
     sar_reference: Mapped[str] = mapped_column(String(100), nullable=True)
 
-    # ─── Linked Records ──────────────────────────
+    # â”€â”€â”€ Linked Records â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     screening_result_id: Mapped[str] = mapped_column(String(36), nullable=True)
     adverse_media_id: Mapped[str] = mapped_column(String(36), nullable=True)
 
-    # ─── Metadata ─────────────────────────────────
+    # â”€â”€â”€ Metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     created_by: Mapped[str] = mapped_column(String(36), nullable=True)
     closed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)

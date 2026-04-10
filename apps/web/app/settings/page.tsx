@@ -37,7 +37,7 @@ export default function SettingsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className="input-group">
                 <label>Organization Name</label>
-                <input className="input" defaultValue="Cortex AML Enterprise" />
+                <input className="input" defaultValue="ComplyArc Enterprise" />
               </div>
               <div className="input-group">
                 <label>Industry</label>
@@ -79,14 +79,14 @@ export default function SettingsPage() {
               <tbody>
                 <tr>
                   <td style={{ fontWeight: 500 }}>Production Key</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>ctx_a1b2c3d4e5...●●●●</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>ctx_a1b2c3d4e5...â—â—â—â—</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>2024-01-15</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>2 hours ago</td>
                   <td><span className="badge badge-active">Active</span></td>
                 </tr>
                 <tr>
                   <td style={{ fontWeight: 500 }}>Staging Key</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>ctx_f6g7h8i9j0...●●●●</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>ctx_f6g7h8i9j0...â—â—â—â—</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>2024-03-20</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>1 day ago</td>
                   <td><span className="badge badge-active">Active</span></td>
@@ -100,19 +100,19 @@ export default function SettingsPage() {
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>Risk Scoring Configuration</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className="input-group">
-                <label>High Risk Threshold (≥)</label>
+                <label>High Risk Threshold (â‰¥)</label>
                 <input className="input" type="number" defaultValue="4.0" step="0.1" min="1" max="5" />
               </div>
               <div className="input-group">
-                <label>Medium Risk Threshold (≥)</label>
+                <label>Medium Risk Threshold (â‰¥)</label>
                 <input className="input" type="number" defaultValue="2.5" step="0.1" min="1" max="5" />
               </div>
               <div className="input-group">
-                <label>Match Confidence — High (≥%)</label>
+                <label>Match Confidence â€” High (â‰¥%)</label>
                 <input className="input" type="number" defaultValue="85" min="50" max="100" />
               </div>
               <div className="input-group">
-                <label>Match Confidence — Medium (≥%)</label>
+                <label>Match Confidence â€” Medium (â‰¥%)</label>
                 <input className="input" type="number" defaultValue="70" min="30" max="100" />
               </div>
             </div>

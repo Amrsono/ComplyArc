@@ -1,5 +1,5 @@
 """
-Cortex AML — Adverse Media AI Service
+ComplyArc â€” Adverse Media AI Service
 LLM-powered news analysis with entity extraction and risk classification
 """
 import json
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class AdverseMediaService:
     """
-    AI-powered adverse media engine — Cortex AML's competitive advantage.
+    AI-powered adverse media engine â€” ComplyArc's competitive advantage.
     
     Pipeline:
     1. Search news APIs for entity mentions

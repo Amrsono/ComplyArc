@@ -1,5 +1,5 @@
 """
-Cortex AML — Services Package
+ComplyArc â€” Services Package
 """
 from app.services.screening_service import screening_service  # noqa
 from app.services.risk_engine import risk_engine  # noqa

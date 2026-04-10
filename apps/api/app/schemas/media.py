@@ -1,5 +1,5 @@
 """
-Cortex AML — Media Schemas
+ComplyArc â€” Media Schemas
 """
 from pydantic import BaseModel
 from typing import Optional, List

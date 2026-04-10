@@ -1,5 +1,5 @@
 /**
- * Cortex AML — API Client
+ * ComplyArc â€” API Client
  * Centralized HTTP client for backend communication
  */
 
@@ -23,14 +23,14 @@ class ApiClient {
   setToken(token: string) {
     this.token = token;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('cortex_token', token);
+      localStorage.setItem('complyarc_token', token);
     }
   }
 
   getToken(): string | null {
     if (this.token) return this.token;
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('cortex_token');
+      return localStorage.getItem('complyarc_token');
     }
     return null;
   }
@@ -38,7 +38,7 @@ class ApiClient {
   clearToken() {
     this.token = null;
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('cortex_token');
+      localStorage.removeItem('complyarc_token');
     }
   }
 
@@ -69,7 +69,7 @@ class ApiClient {
     return response.json();
   }
 
-  // ─── Auth ────────────────────────────
+  // â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async login(email: string, password: string) {
     const data = await this.request<any>('/auth/login', {
       method: 'POST',
@@ -90,7 +90,7 @@ class ApiClient {
     return this.request<any>('/auth/me');
   }
 
-  // ─── Screening ───────────────────────
+  // â”€â”€â”€ Screening â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async screenEntity(name: string, entityType: string = 'individual', options?: any) {
     return this.request<any>('/screen', {
       method: 'POST',
@@ -105,7 +105,7 @@ class ApiClient {
     });
   }
 
-  // ─── Clients ─────────────────────────
+  // â”€â”€â”€ Clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async listClients(params?: any) {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request<any>(`/clients${query}`);
@@ -127,7 +127,7 @@ class ApiClient {
     return this.request<any>(`/clients/${id}/activate`, { method: 'POST' });
   }
 
-  // ─── Risk ────────────────────────────
+  // â”€â”€â”€ Risk â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async calculateRisk(clientId: string, overrides?: any) {
     return this.request<any>('/risk/calculate', {
       method: 'POST',
@@ -139,7 +139,7 @@ class ApiClient {
     return this.request<any>(`/risk/client/${clientId}`);
   }
 
-  // ─── Cases ───────────────────────────
+  // â”€â”€â”€ Cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async listCases(params?: any) {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request<any>(`/cases${query}`);
@@ -164,7 +164,7 @@ class ApiClient {
     });
   }
 
-  // ─── Adverse Media ───────────────────
+  // â”€â”€â”€ Adverse Media â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async searchMedia(entityName: string, clientId?: string) {
     return this.request<any>('/media/search', {
       method: 'POST',
@@ -172,7 +172,7 @@ class ApiClient {
     });
   }
 
-  // ─── Dashboard ───────────────────────
+  // â”€â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async getDashboardStats() {
     return this.request<any>('/dashboard/stats');
   }
@@ -182,7 +182,7 @@ class ApiClient {
     return this.request<any>(`/dashboard/audit-log${query}`);
   }
 
-  // ─── Admin ───────────────────────────
+  // â”€â”€â”€ Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async ingestSanctions() {
     return this.request<any>('/admin/ingest-sanctions', { method: 'POST' });
   }

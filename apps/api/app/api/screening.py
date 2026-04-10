@@ -1,5 +1,5 @@
 """
-Cortex AML — Screening API Routes
+ComplyArc â€” Screening API Routes
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,7 +36,7 @@ async def screen_entity(
         resource_id=result.screening_id,
         user_id=user.id,
         user_email=user.email,
-        description=f"Screened entity: {request.name} — {result.total_matches} matches, risk: {result.overall_risk}",
+        description=f"Screened entity: {request.name} â€” {result.total_matches} matches, risk: {result.overall_risk}",
     )
 
     return result
@@ -59,7 +59,7 @@ async def screen_entity_api(
         resource_type="screening",
         resource_id=result.screening_id,
         api_key_id=api_key.id,
-        description=f"API screening: {request.name} — {result.total_matches} matches",
+        description=f"API screening: {request.name} â€” {result.total_matches} matches",
     )
 
     return result

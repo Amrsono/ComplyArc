@@ -1,5 +1,5 @@
 """
-Cortex AML — Audit Log Model
+ComplyArc â€” Audit Log Model
 Immutable compliance audit trail
 """
 import uuid
@@ -15,12 +15,12 @@ class AuditLog(Base):
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    # ─── Who ──────────────────────────────────────
+    # â”€â”€â”€ Who â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     user_id: Mapped[str] = mapped_column(String(36), nullable=True, index=True)
     user_email: Mapped[str] = mapped_column(String(255), nullable=True)
     api_key_id: Mapped[str] = mapped_column(String(36), nullable=True)
 
-    # ─── What ─────────────────────────────────────
+    # â”€â”€â”€ What â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     action: Mapped[str] = mapped_column(
         String(100), nullable=False, index=True
     )  # screen, kyc_onboard, risk_calculate, case_create, etc.
@@ -29,17 +29,17 @@ class AuditLog(Base):
     )  # client, screening, case, risk_score, etc.
     resource_id: Mapped[str] = mapped_column(String(36), nullable=True)
 
-    # ─── Details ──────────────────────────────────
+    # â”€â”€â”€ Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     description: Mapped[str] = mapped_column(Text, nullable=True)
     old_value: Mapped[str] = mapped_column(Text, nullable=True)  # JSON
     new_value: Mapped[str] = mapped_column(Text, nullable=True)  # JSON
-    extra_metadata: Mapped[str] = mapped_column(Text, nullable=True)  # JSON — extra context
+    extra_metadata: Mapped[str] = mapped_column(Text, nullable=True)  # JSON â€” extra context
 
-    # ─── Context ──────────────────────────────────
+    # â”€â”€â”€ Context â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     ip_address: Mapped[str] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[str] = mapped_column(String(500), nullable=True)
 
-    # ─── Timestamp (immutable) ────────────────────
+    # â”€â”€â”€ Timestamp (immutable) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )

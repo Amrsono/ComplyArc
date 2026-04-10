@@ -1,5 +1,5 @@
 """
-Cortex AML — Screening Service
+ComplyArc â€” Screening Service
 Core entity resolution engine with multi-algorithm fuzzy matching
 """
 import json
@@ -20,28 +20,28 @@ from app.schemas.screening import (
 
 class ScreeningService:
     """
-    Entity resolution engine — the heart of Cortex AML.
+    Entity resolution engine â€” the heart of ComplyArc.
     
     Matching Algorithm:
-    ├── Name Similarity (60% weight)
-    │   ├── Jaro-Winkler (best for names)
-    │   ├── Token Sort Ratio (handles name reordering)
-    │   ├── Partial Ratio (handles partial matches)
-    │   └── Phonetic (Soundex/Metaphone)
-    ├── DOB Match (15% weight)
-    ├── Nationality Match (10% weight)
-    ├── ID Number Match (10% weight)
-    └── Address Similarity (5% weight)
+    â”œâ”€â”€ Name Similarity (60% weight)
+    â”‚   â”œâ”€â”€ Jaro-Winkler (best for names)
+    â”‚   â”œâ”€â”€ Token Sort Ratio (handles name reordering)
+    â”‚   â”œâ”€â”€ Partial Ratio (handles partial matches)
+    â”‚   â””â”€â”€ Phonetic (Soundex/Metaphone)
+    â”œâ”€â”€ DOB Match (15% weight)
+    â”œâ”€â”€ Nationality Match (10% weight)
+    â”œâ”€â”€ ID Number Match (10% weight)
+    â””â”€â”€ Address Similarity (5% weight)
     """
 
-    # ─── Weights ──────────────────────────────────
+    # â”€â”€â”€ Weights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     WEIGHT_NAME = 0.60
     WEIGHT_DOB = 0.15
     WEIGHT_NATIONALITY = 0.10
     WEIGHT_ID = 0.10
     WEIGHT_ADDRESS = 0.05
 
-    # ─── Name Sub-Weights ─────────────────────────
+    # â”€â”€â”€ Name Sub-Weights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     NAME_JARO_WINKLER = 0.35
     NAME_TOKEN_SORT = 0.30
     NAME_PARTIAL = 0.20
@@ -75,7 +75,7 @@ class ScreeningService:
         # Partial Ratio (handles partial matches like "John" in "John A. Smith")
         partial = fuzz.partial_ratio(n1, n2)
 
-        # Phonetic matching (Soundex — handles misspellings)
+        # Phonetic matching (Soundex â€” handles misspellings)
         try:
             s1 = jellyfish.soundex(n1.split()[0]) if n1.split() else ""
             s2 = jellyfish.soundex(n2.split()[0]) if n2.split() else ""
@@ -173,16 +173,16 @@ class ScreeningService:
         parts.append(f"Name similarity: {name_sim:.1f}%")
 
         if dob_match is True:
-            parts.append("DOB: Match ✓")
+            parts.append("DOB: Match âœ“")
         elif dob_match is False:
-            parts.append("DOB: No match ✗")
+            parts.append("DOB: No match âœ—")
         else:
             parts.append("DOB: Not available")
 
         if nat_match is True:
-            parts.append("Nationality: Match ✓")
+            parts.append("Nationality: Match âœ“")
         elif nat_match is False:
-            parts.append("Nationality: No match ✗")
+            parts.append("Nationality: No match âœ—")
         else:
             parts.append("Nationality: Not available")
 

@@ -1,5 +1,5 @@
 """
-Cortex AML — FastAPI Dependencies
+ComplyArc â€” FastAPI Dependencies
 Auth, DB session, and API key injection
 """
 from typing import Optional
@@ -59,7 +59,7 @@ async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
-    """Optional auth — returns None if not authenticated."""
+    """Optional auth â€” returns None if not authenticated."""
     if not credentials:
         return None
     try:

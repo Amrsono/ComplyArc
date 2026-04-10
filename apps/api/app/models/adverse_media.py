@@ -1,5 +1,5 @@
 """
-Cortex AML — Adverse Media Model
+ComplyArc â€” Adverse Media Model
 News articles linked to clients with AI-powered classification
 """
 import uuid
@@ -19,7 +19,7 @@ class AdverseMedia(Base):
         String(36), ForeignKey("clients.id"), nullable=True, index=True
     )
 
-    # ─── Article Info ─────────────────────────────
+    # â”€â”€â”€ Article Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     entity_name: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(1000), nullable=True)
     source: Mapped[str] = mapped_column(String(500), nullable=True)
@@ -27,7 +27,7 @@ class AdverseMedia(Base):
     published_date: Mapped[str] = mapped_column(String(10), nullable=True)
     snippet: Mapped[str] = mapped_column(Text, nullable=True)
 
-    # ─── AI Classification ────────────────────────
+    # â”€â”€â”€ AI Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     category: Mapped[str] = mapped_column(
         String(50), nullable=True
     )  # fraud, corruption, terrorism, money_laundering, sanctions_evasion, other
@@ -35,12 +35,12 @@ class AdverseMedia(Base):
     relevance_score: Mapped[float] = mapped_column(Float, nullable=True)  # 0-100
     confidence_score: Mapped[float] = mapped_column(Float, nullable=True)  # 0-100
 
-    # ─── AI Analysis ──────────────────────────────
+    # â”€â”€â”€ AI Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     ai_summary: Mapped[str] = mapped_column(Text, nullable=True)
     risk_impact: Mapped[str] = mapped_column(Text, nullable=True)  # Description of risk impact
     risk_score_impact: Mapped[float] = mapped_column(Float, nullable=True)  # Score modifier
 
-    # ─── Metadata ─────────────────────────────────
+    # â”€â”€â”€ Metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     reviewed: Mapped[bool] = mapped_column(default=False)
     reviewed_by: Mapped[str] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

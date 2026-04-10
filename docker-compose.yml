@@ -1,28 +1,28 @@
 version: "3.9"
 
 services:
-  # ─── PostgreSQL Database ────────────────────────
+  # â”€â”€â”€ PostgreSQL Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   postgres:
     image: postgres:16-alpine
-    container_name: cortex-postgres
+    container_name: complyarc-postgres
     environment:
-      POSTGRES_USER: cortex
-      POSTGRES_PASSWORD: cortex_secret
-      POSTGRES_DB: cortex_aml
+      POSTGRES_USER: complyarc
+      POSTGRES_PASSWORD: complyarc_secret
+      POSTGRES_DB: complyarc
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cortex -d cortex_aml"]
+      test: ["CMD-SHELL", "pg_isready -U complyarc -d complyarc"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # ─── Redis Cache & Message Broker ───────────────
+  # â”€â”€â”€ Redis Cache & Message Broker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   redis:
     image: redis:7-alpine
-    container_name: cortex-redis
+    container_name: complyarc-redis
     ports:
       - "6379:6379"
     volumes:
@@ -33,17 +33,17 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─── FastAPI Backend ────────────────────────────
+  # â”€â”€â”€ FastAPI Backend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   api:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: cortex-api
+    container_name: complyarc-api
     environment:
-      DATABASE_URL: postgresql+asyncpg://cortex:cortex_secret@postgres:5432/cortex_aml
-      DATABASE_URL_SYNC: postgresql://cortex:cortex_secret@postgres:5432/cortex_aml
+      DATABASE_URL: postgresql+asyncpg://complyarc:complyarc_secret@postgres:5432/complyarc
+      DATABASE_URL_SYNC: postgresql://complyarc:complyarc_secret@postgres:5432/complyarc
       REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-cortex-dev-secret-key-change-me}
+      SECRET_KEY: ${SECRET_KEY:-complyarc-dev-secret-key-change-me}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       NEWS_API_KEY: ${NEWS_API_KEY:-}
       CORS_ORIGINS: http://localhost:3000
@@ -58,12 +58,12 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ─── Next.js Frontend ──────────────────────────
+  # â”€â”€â”€ Next.js Frontend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: cortex-web
+    container_name: complyarc-web
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
     ports:
@@ -72,18 +72,18 @@ services:
       - api
     restart: unless-stopped
 
-  # ─── Celery Worker (Background Tasks) ──────────
+  # â”€â”€â”€ Celery Worker (Background Tasks) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   worker:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: cortex-worker
+    container_name: complyarc-worker
     command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
     environment:
-      DATABASE_URL: postgresql+asyncpg://cortex:cortex_secret@postgres:5432/cortex_aml
-      DATABASE_URL_SYNC: postgresql://cortex:cortex_secret@postgres:5432/cortex_aml
+      DATABASE_URL: postgresql+asyncpg://complyarc:complyarc_secret@postgres:5432/complyarc
+      DATABASE_URL_SYNC: postgresql://complyarc:complyarc_secret@postgres:5432/complyarc
       REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-cortex-dev-secret-key-change-me}
+      SECRET_KEY: ${SECRET_KEY:-complyarc-dev-secret-key-change-me}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       NEWS_API_KEY: ${NEWS_API_KEY:-}
       ENVIRONMENT: production
@@ -94,16 +94,16 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ─── Celery Beat (Scheduled Tasks) ─────────────
+  # â”€â”€â”€ Celery Beat (Scheduled Tasks) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   beat:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: cortex-beat
+    container_name: complyarc-beat
     command: celery -A app.workers.celery_app beat --loglevel=info
     environment:
-      DATABASE_URL: postgresql+asyncpg://cortex:cortex_secret@postgres:5432/cortex_aml
-      DATABASE_URL_SYNC: postgresql://cortex:cortex_secret@postgres:5432/cortex_aml
+      DATABASE_URL: postgresql+asyncpg://complyarc:complyarc_secret@postgres:5432/complyarc
+      DATABASE_URL_SYNC: postgresql://complyarc:complyarc_secret@postgres:5432/complyarc
       REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: production
     depends_on:

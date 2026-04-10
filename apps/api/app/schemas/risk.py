@@ -1,5 +1,5 @@
 """
-Cortex AML — Risk Schemas
+ComplyArc â€” Risk Schemas
 """
 from pydantic import BaseModel
 from typing import Optional, List

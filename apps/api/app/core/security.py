@@ -1,5 +1,5 @@
 """
-Cortex AML — Security Module
+ComplyArc â€” Security Module
 JWT management, password hashing, API key validation
 """
 from datetime import datetime, timedelta, timezone
@@ -11,7 +11,7 @@ import hashlib
 
 from app.core.config import settings
 
-# ─── Password Hashing ────────────────────────────
+# â”€â”€â”€ Password Hashing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -23,7 +23,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# ─── JWT Token Management ────────────────────────
+# â”€â”€â”€ JWT Token Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def create_access_token(
     data: dict,
     expires_delta: Optional[timedelta] = None,
@@ -46,7 +46,7 @@ def verify_access_token(token: str) -> Optional[dict]:
         return None
 
 
-# ─── API Key Management ──────────────────────────
+# â”€â”€â”€ API Key Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def generate_api_key() -> str:
     """Generate a new API key with 'ctx_' prefix."""
     return f"ctx_{secrets.token_urlsafe(32)}"

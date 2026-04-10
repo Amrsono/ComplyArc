@@ -1,5 +1,5 @@
 """
-Cortex AML — Schemas Package
+ComplyArc â€” Schemas Package
 """
 from app.schemas.auth import *  # noqa
 from app.schemas.client import *  # noqa

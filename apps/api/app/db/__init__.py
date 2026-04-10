@@ -1,3 +1,3 @@
 """
-Cortex AML — Database Package
+ComplyArc â€” Database Package
 """

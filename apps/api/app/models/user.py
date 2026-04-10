@@ -1,5 +1,5 @@
 """
-Cortex AML — User Model
+ComplyArc â€” User Model
 Platform users: compliance officers, analysts, admins
 """
 import uuid

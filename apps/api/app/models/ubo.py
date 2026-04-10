@@ -1,5 +1,5 @@
 """
-Cortex AML — UBO (Ultimate Beneficial Owner) Model
+ComplyArc â€” UBO (Ultimate Beneficial Owner) Model
 Ownership structure tracking for corporate clients
 """
 import uuid

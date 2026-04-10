@@ -1,5 +1,5 @@
 """
-Cortex AML — Cases API Routes
+ComplyArc â€” Cases API Routes
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession

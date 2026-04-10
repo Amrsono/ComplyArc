@@ -1,5 +1,5 @@
 """
-Cortex AML — FastAPI Application Entry Point
+ComplyArc â€” FastAPI Application Entry Point
 """
 import logging
 from contextlib import asynccontextmanager
@@ -22,38 +22,38 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup/shutdown lifecycle."""
-    logger.info("🚀 Starting Cortex AML API...")
+    logger.info("ðŸš€ Starting ComplyArc API...")
     logger.info(f"   Environment: {settings.ENVIRONMENT}")
     logger.info(f"   Version: {settings.APP_VERSION}")
     logger.info(f"   Database URL: {settings.DATABASE_URL[:30]}...")
 
-    # Create database tables (resilient — don't crash if DB isn't ready)
+    # Create database tables (resilient â€” don't crash if DB isn't ready)
     try:
         await create_tables()
         async with async_session_factory() as session:
             await init_db(session)
             await session.commit()
-        logger.info("✅ Database initialized successfully")
+        logger.info("âœ… Database initialized successfully")
     except Exception as e:
-        logger.warning(f"⚠️  Database initialization deferred: {e}")
-        logger.warning("   The API will start without DB — retry on first request")
+        logger.warning(f"âš ï¸  Database initialization deferred: {e}")
+        logger.warning("   The API will start without DB â€” retry on first request")
 
-    logger.info("✅ Cortex AML API ready")
+    logger.info("âœ… ComplyArc API ready")
     yield
-    logger.info("🛑 Shutting down Cortex AML API...")
+    logger.info("ðŸ›‘ Shutting down ComplyArc API...")
 
 
-# ─── Create Application ──────────────────────────
+# â”€â”€â”€ Create Application â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app = FastAPI(
-    title="Cortex AML API",
-    description="AI-Native AML & eKYC Operating System — Sanctions Screening, PEP Detection, Adverse Media AI, Risk Scoring Engine",
+    title="ComplyArc API",
+    description="AI-Native AML & eKYC Operating System â€” Sanctions Screening, PEP Detection, Adverse Media AI, Risk Scoring Engine",
     version=settings.APP_VERSION,
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# ─── CORS Middleware ──────────────────────────────
+# â”€â”€â”€ CORS Middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -63,7 +63,7 @@ app.add_middleware(
 )
 
 
-# ─── Global Exception Handler ────────────────────
+# â”€â”€â”€ Global Exception Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error: {exc}", exc_info=True)
@@ -73,7 +73,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# ─── Register API Routers ────────────────────────
+# â”€â”€â”€ Register API Routers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from app.api.auth import router as auth_router
 from app.api.screening import router as screening_router
 from app.api.clients import router as clients_router
@@ -91,18 +91,18 @@ app.include_router(media_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 
 
-# ─── Health Check ─────────────────────────────────
+# â”€â”€â”€ Health Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.get("/health", tags=["System"])
 async def health_check():
     return {
         "status": "healthy",
-        "service": "Cortex AML API",
+        "service": "ComplyArc API",
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
     }
 
 
-# ─── Sanctions Data Management ────────────────────
+# â”€â”€â”€ Sanctions Data Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.post("/api/v1/admin/ingest-sanctions", tags=["Admin"])
 async def ingest_sanctions(request: Request):
     """Trigger sanctions list ingestion (admin only)."""
