@@ -33,7 +33,7 @@ class AuditLog(Base):
     description: Mapped[str] = mapped_column(Text, nullable=True)
     old_value: Mapped[str] = mapped_column(Text, nullable=True)  # JSON
     new_value: Mapped[str] = mapped_column(Text, nullable=True)  # JSON
-    metadata: Mapped[str] = mapped_column(Text, nullable=True)  # JSON — extra context
+    extra_metadata: Mapped[str] = mapped_column(Text, nullable=True)  # JSON — extra context
 
     # ─── Context ──────────────────────────────────
     ip_address: Mapped[str] = mapped_column(String(45), nullable=True)

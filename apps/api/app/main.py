@@ -25,14 +25,18 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting Cortex AML API...")
     logger.info(f"   Environment: {settings.ENVIRONMENT}")
     logger.info(f"   Version: {settings.APP_VERSION}")
+    logger.info(f"   Database URL: {settings.DATABASE_URL[:30]}...")
 
-    # Create database tables
-    await create_tables()
-
-    # Seed default data
-    async with async_session_factory() as session:
-        await init_db(session)
-        await session.commit()
+    # Create database tables (resilient — don't crash if DB isn't ready)
+    try:
+        await create_tables()
+        async with async_session_factory() as session:
+            await init_db(session)
+            await session.commit()
+        logger.info("✅ Database initialized successfully")
+    except Exception as e:
+        logger.warning(f"⚠️  Database initialization deferred: {e}")
+        logger.warning("   The API will start without DB — retry on first request")
 
     logger.info("✅ Cortex AML API ready")
     yield
