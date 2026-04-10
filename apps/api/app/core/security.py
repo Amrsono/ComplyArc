@@ -14,13 +14,17 @@ from app.core.config import settings
 # â”€â”€â”€ Password Hashing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def _prepare_password(password: str) -> str:
+    """Pre-hash password with SHA-256 to handle bcrypt's 72-byte limit."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_context.hash(_prepare_password(password))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(_prepare_password(plain_password), hashed_password)
 
 
 # â”€â”€â”€ JWT Token Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
