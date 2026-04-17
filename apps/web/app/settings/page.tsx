@@ -197,15 +197,50 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {(activeSection === 'team' || activeSection === 'data' || activeSection === 'integ') && (
+          {(activeSection === 'team' || activeSection === 'integ') && (
             <div className="glass-card" style={{ textAlign: 'center', padding: '60px' }}>
               <SettingsIcon size={40} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
               <h3 style={{ fontWeight: 600, marginBottom: '8px' }}>
-                {activeSection === 'team' ? 'Team Management' : activeSection === 'data' ? 'Data Sources' : 'Integrations'}
+                {activeSection === 'team' ? 'Team Management' : 'Integrations'}
               </h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
                 This section will be available in a future update. Contact support for early access.
               </p>
+            </div>
+          )}
+
+          {activeSection === 'data' && (
+            <div className="glass-card">
+              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>Data Sources & Intelligence</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--accent-primary)' }}>
+                  <h4 style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>Global Watchlists (OFAC, UN, PEPs)</h4>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Trigger a manual synchronization of the latest global intelligence data. This will stream and ingest the newest records from the US Treasury, UN Security Council, and OpenSanctions Global databases into your local intelligence pool.
+                  </p>
+                  
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={async () => {
+                      setSaving(true);
+                      try {
+                        const { api } = await import('@/lib/api');
+                        await api.ingestSanctions();
+                        success('Global watchlists successfully synchronized!');
+                      } catch (error) {
+                        console.error('Ingestion failed', error);
+                        success('Failed to synchronize data. Check console.');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }} 
+                    disabled={saving}
+                  >
+                    {saving ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite', marginRight: '8px' }} /> Synchronizing Live Intelligence...</> : <><Database size={14} style={{ marginRight: '8px' }}/> Sync Global Watchlists</>}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
