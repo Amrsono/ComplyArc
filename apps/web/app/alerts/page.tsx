@@ -60,9 +60,9 @@ export default function AlertsPage() {
     try {
       await api.createCase({
         title: alert.description || `Alert: ${alert.type}`,
-        type: alert.type,
+        case_type: alert.type,
         priority: alert.severity === 'high' ? 'high' : 'medium',
-        client_name: alert.client,
+        client_id: alert.client_id,
       });
       success('Case created from alert');
       router.push('/cases');
