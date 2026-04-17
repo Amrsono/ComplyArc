@@ -34,49 +34,44 @@ async def init_db(db: AsyncSession):
         await db.flush()
         logger.info("Created default admin user: admin@complyarc.com / admin123")
 
-    # Seed demo clients
+    # Seed initial real clients for testing
     from app.models.client import Client
     from sqlalchemy import func
     client_count = await db.scalar(select(func.count(Client.id)))
     if not client_count:
-        demo_clients = [
-            Client(name="ABC Trading LLC", type="corporate", status="active",
-                   country="AE", industry="Trade Finance", risk_score=4.2, risk_level="high",
-                   product_type="trade_finance", interface_type="intermediary",
-                   onboarding_channel="remote"),
-            Client(name="Global Investments Corp", type="corporate", status="active",
-                   country="GB", industry="Financial Services", risk_score=2.8, risk_level="medium",
+        real_clients = [
+            Client(name="Apple Inc.", type="corporate", status="active",
+                   country="US", industry="Technology", risk_score=1.5, risk_level="low",
                    product_type="securities", interface_type="direct",
                    onboarding_channel="face_to_face"),
-            Client(name="John Smith", type="individual", status="active",
-                   first_name="John", last_name="Smith", date_of_birth="1975-03-15",
-                   nationality="US", country="US", risk_score=1.5, risk_level="low",
+            Client(name="Tesla Motors, Inc.", type="corporate", status="active",
+                   country="US", industry="Automotive", risk_score=2.8, risk_level="medium",
+                   product_type="trade_finance", interface_type="intermediary",
+                   onboarding_channel="remote"),
+            Client(name="Elon Musk", type="individual", status="active",
+                   first_name="Elon", last_name="Musk", date_of_birth="1971-06-28",
+                   nationality="US", country="US", risk_score=4.2, risk_level="high",
                    product_type="advisory", interface_type="direct",
-                   onboarding_channel="face_to_face"),
-            Client(name="Maria Gonzalez", type="individual", status="pending",
-                   first_name="Maria", last_name="Gonzalez", date_of_birth="1988-07-22",
-                   nationality="ES", country="ES", risk_score=None, risk_level=None,
-                   product_type="consulting"),
-            Client(name="Dragon Holdings Ltd", type="corporate", status="active",
-                   country="HK", industry="Holding Company", risk_score=3.6, risk_level="medium",
-                   product_type="trust_services", interface_type="intermediary",
-                   onboarding_channel="remote"),
-            Client(name="Pacific Ventures KK", type="corporate", status="dormant",
-                   country="JP", industry="Venture Capital", risk_score=2.1, risk_level="low",
-                   product_type="advisory", interface_type="direct"),
-            Client(name="Sahara Mining Co", type="corporate", status="suspended",
-                   country="ZA", industry="Mining", risk_score=4.7, risk_level="high",
-                   product_type="cash_services", interface_type="intermediary",
-                   onboarding_channel="remote"),
-            Client(name="Ahmed Al-Rashid", type="individual", status="active",
-                   first_name="Ahmed", last_name="Al-Rashid", date_of_birth="1965-11-03",
-                   nationality="SA", country="SA", risk_score=3.9, risk_level="medium",
+                   onboarding_channel="face_to_face", pep_status=False),
+            Client(name="Microsoft Corporation", type="corporate", status="active",
+                   country="US", industry="Technology", risk_score=1.2, risk_level="low",
+                   product_type="securities"),
+            Client(name="Binance Holdings Ltd", type="corporate", status="pending",
+                   country="KY", industry="Cryptocurrency", risk_score=4.8, risk_level="high",
+                   product_type="crypto_services", interface_type="remote",
+                   onboarding_channel="digital"),
+            Client(name="Vladimir Putin", type="individual", status="suspended",
+                   first_name="Vladimir", last_name="Putin", date_of_birth="1952-10-07",
+                   nationality="RU", country="RU", risk_score=5.0, risk_level="high",
                    pep_status=True, product_type="private_banking"),
+            Client(name="Amazon.com, Inc.", type="corporate", status="active",
+                   country="US", industry="Retail / Technology", risk_score=1.8, risk_level="low",
+                   product_type="cash_services"),
         ]
-        for c in demo_clients:
+        for c in real_clients:
             db.add(c)
         await db.flush()
-        logger.info(f"Seeded {len(demo_clients)} demo clients")
+        logger.info(f"Seeded {len(real_clients)} real-world example clients")
 
 
 async def create_tables():

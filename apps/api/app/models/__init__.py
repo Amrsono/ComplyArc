@@ -13,6 +13,8 @@ from app.models.audit_log import AuditLog
 from app.models.sanctions_entry import SanctionsEntry
 from app.models.monitoring import Monitoring
 
+from app.models.report import Report
+
 __all__ = [
     "User",
     "Client",
@@ -26,4 +28,5 @@ __all__ = [
     "AuditLog",
     "SanctionsEntry",
     "Monitoring",
+    "Report",
 ]

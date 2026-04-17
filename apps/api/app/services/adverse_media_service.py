@@ -107,10 +107,10 @@ class AdverseMediaService:
         )
 
     async def _fetch_news(self, entity_name: str) -> List[dict]:
-        """Fetch news articles about an entity from news API."""
+        """Fetch news articles about an entity from news API or RSS fallback."""
         if not settings.NEWS_API_KEY:
-            # Return demo data when no API key is configured
-            return self._get_demo_news(entity_name)
+            # Fallback to Google News RSS for real data if no API key is configured
+            return await self._get_google_news_rss(entity_name)
 
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
@@ -139,31 +139,43 @@ class AdverseMediaService:
         except Exception as e:
             logger.error(f"News API error: {e}")
 
-        return self._get_demo_news(entity_name)
+        return await self._get_google_news_rss(entity_name)
 
-    def _get_demo_news(self, entity_name: str) -> List[dict]:
-        """Return demo news data for development/testing."""
-        return [
-            {
-                "title": f"Investigation reveals potential financial irregularities linked to {entity_name}",
-                "source": "Financial Times",
-                "url": "https://example.com/article1",
-                "description": f"A recent investigation has uncovered potential financial irregularities involving {entity_name}. Authorities are examining transactions spanning multiple jurisdictions.",
-                "published_date": "2024-06-15",
-            },
-            {
-                "title": f"Regulatory scrutiny increases for entities associated with {entity_name}",
-                "source": "Reuters",
-                "url": "https://example.com/article2",
-                "description": f"Multiple regulatory bodies have increased their scrutiny of business operations connected to {entity_name} following whistleblower complaints.",
-                "published_date": "2024-05-20",
-            },
-        ]
+    async def _get_google_news_rss(self, entity_name: str) -> List[dict]:
+        """Fetch real news data via Google News RSS as an unauthenticated fallback."""
+        import urllib.parse
+        from xml.etree import ElementTree as ET
+        query = urllib.parse.quote(f'"{entity_name}" (fraud OR corruption OR sanctions OR crime OR money laundering)')
+        url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+        articles = []
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(url)
+                if response.status_code == 200:
+                    root = ET.fromstring(response.content)
+                    for item in root.findall('.//item')[:10]:  # Limit to top 10
+                        title = item.findtext('title') or ""
+                        source = item.findtext('source') or "Google News"
+                        link = item.findtext('link') or ""
+                        description = item.findtext('description') or ""
+                        pub_date = item.findtext('pubDate') or ""
+                        
+                        articles.append({
+                            "title": title,
+                            "source": source,
+                            "url": link,
+                            "description": description,
+                            "published_date": pub_date,
+                        })
+        except Exception as e:
+            logger.error(f"Google News RSS error: {e}")
+
+        return articles
 
     async def _classify_article(self, entity_name: str, article: dict) -> dict:
         """Use LLM to classify an article's risk category and severity."""
         if not settings.OPENAI_API_KEY:
-            return self._demo_classification(article)
+            return self._heuristic_classification(article)
 
         try:
             from openai import AsyncOpenAI
@@ -204,10 +216,10 @@ Respond in JSON format with these exact fields:
 
         except Exception as e:
             logger.error(f"OpenAI classification error: {e}")
-            return self._demo_classification(article)
+            return self._heuristic_classification(article)
 
-    def _demo_classification(self, article: dict) -> dict:
-        """Fallback classification for demo/development."""
+    def _heuristic_classification(self, article: dict) -> dict:
+        """Fallback heuristic classification for real news when LLM is unavailable."""
         title = (article.get("title") or "").lower()
         if any(w in title for w in ["fraud", "irregularities", "misappropriation"]):
             return {

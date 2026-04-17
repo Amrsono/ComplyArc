@@ -292,40 +292,49 @@ class SanctionsIngestor:
         }
 
     async def seed_pep_entries(self, db: AsyncSession) -> int:
-        """Seed PEP (Politically Exposed Persons) demo data for MVP."""
-        logger.info("Seeding PEP demo entries...")
+        """Ingest real PEP (Politically Exposed Persons) data from OpenSanctions."""
+        logger.info("Ingesting real PEP entries from OpenSanctions...")
 
         await db.execute(
             delete(SanctionsEntry).where(SanctionsEntry.list_type == "PEP")
         )
 
-        pep_entries = [
-            {"full_name": "Vladimir Putin", "country": "RU", "program": "Head of State", "nationality": "Russian"},
-            {"full_name": "Xi Jinping", "country": "CN", "program": "Head of State", "nationality": "Chinese"},
-            {"full_name": "Recep Tayyip Erdogan", "country": "TR", "program": "Head of State", "nationality": "Turkish"},
-            {"full_name": "Narendra Modi", "country": "IN", "program": "Head of State", "nationality": "Indian"},
-            {"full_name": "Emmanuel Macron", "country": "FR", "program": "Head of State", "nationality": "French"},
-            {"full_name": "Olaf Scholz", "country": "DE", "program": "Head of Government", "nationality": "German"},
-            {"full_name": "Fumio Kishida", "country": "JP", "program": "Head of Government", "nationality": "Japanese"},
-            {"full_name": "Luiz Inacio Lula da Silva", "country": "BR", "program": "Head of State", "nationality": "Brazilian"},
-            {"full_name": "Cyril Ramaphosa", "country": "ZA", "program": "Head of State", "nationality": "South African"},
-            {"full_name": "Mohammed bin Salman", "country": "SA", "program": "Crown Prince", "nationality": "Saudi"},
-        ]
+        url = "https://data.opensanctions.org/datasets/latest/peps/targets.simple.csv"
+        
+        try:
+            import csv
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                async with client.stream("GET", url) as response:
+                    response.raise_for_status()
+                    lines = []
+                    async for line in response.aiter_lines():
+                        lines.append(line)
+                        # Limit to first 2000 records to keep DB fast for MVP
+                        if len(lines) > 2000:
+                            break
+            
+            reader = csv.DictReader(lines)
+            count = 0
+            for row in reader:
+                db.add(SanctionsEntry(
+                    list_type="PEP",
+                    entity_type="individual",
+                    full_name=row.get("name") or "Unknown PEP",
+                    country=row.get("countries", "").split(";")[0] if row.get("countries") else None,
+                    program="PEP",
+                    date_of_birth=row.get("birth_date", "").split(";")[0] if row.get("birth_date") else None,
+                    aliases=row.get("aliases") if row.get("aliases") else None,
+                    is_active=True,
+                ))
+                count += 1
 
-        for entry in pep_entries:
-            db.add(SanctionsEntry(
-                list_type="PEP",
-                entity_type="individual",
-                full_name=entry["full_name"],
-                country=entry["country"],
-                program=entry["program"],
-                nationality=entry.get("nationality"),
-                is_active=True,
-            ))
+            await db.flush()
+            logger.info(f"Ingested {count} real PEP entries")
+            return count
 
-        await db.flush()
-        logger.info(f"Seeded {len(pep_entries)} PEP entries")
-        return len(pep_entries)
+        except Exception as e:
+            logger.error(f"Failed to ingest PEPs: {e}")
+            return 0
 
 
 # Singleton
