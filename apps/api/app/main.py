@@ -3,7 +3,7 @@ ComplyArc â€” FastAPI Application Entry Point
 """
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -157,17 +157,25 @@ async def health_check():
 
 
 # â”€â”€â”€ Sanctions Data Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-@app.post("/api/v1/admin/ingest-sanctions", tags=["Admin"])
+async def run_sanctions_ingestion():
+    """Background task for ingestion."""
+    from app.services.sanctions_ingestor import sanctions_ingestor
+    from app.db.base import async_session_factory
+    
+    logger.info("âš«ï¸   Background sanctions ingestion started...")
+    try:
+        async with async_session_factory() as db:
+            stats = await sanctions_ingestor.ingest_all(db)
+            await db.commit()
+            logger.info(f"âœ… Background ingestion completed: {stats}")
+    except Exception as e:
+        logger.error(f"â Œ Background ingestion failed: {e}", exc_info=True)
+
+@app.post("/api/v1/admin/ingest-sanctions", tags=["Admin"], status_code=202)
 async def ingest_sanctions(
-    request: Request,
+    background_tasks: BackgroundTasks,
     admin_user: User = Depends(require_role("admin")),
 ):
-    """Trigger sanctions list ingestion (admin only)."""
-    from app.services.sanctions_ingestor import sanctions_ingestor
-    from app.db.base import get_db
-
-    async with async_session_factory() as db:
-        stats = await sanctions_ingestor.ingest_all(db)
-        await db.commit()
-
-    return {"status": "completed", "stats": stats}
+    """Trigger sanctions list ingestion (admin only, runs in background)."""
+    background_tasks.add_task(run_sanctions_ingestion)
+    return {"message": "Synchronization started in background"}

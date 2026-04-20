@@ -20,7 +20,7 @@ const settingsSections = [
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const { success } = useToast();
+  const { success, error: showError } = useToast();
   const [activeSection, setActiveSection] = useState('org');
 
   if (user?.email !== 'admin@arc.com') {
@@ -251,17 +251,17 @@ export default function SettingsPage() {
                       try {
                         const { api } = await import('@/lib/api');
                         await api.ingestSanctions();
-                        success('Global watchlists successfully synchronized!');
-                      } catch (error) {
-                        console.error('Ingestion failed', error);
-                        success('Failed to synchronize data. Check console.');
+                        success('Global watchlists synchronization started in background. This may take a few minutes.');
+                      } catch (err: any) {
+                        console.error('Ingestion failed', err);
+                        showError(err.message || 'Failed to synchronize data. Check console.');
                       } finally {
                         setSaving(false);
                       }
                     }} 
                     disabled={saving}
                   >
-                    {saving ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite', marginRight: '8px' }} /> Synchronizing Live Intelligence...</> : <><Database size={14} style={{ marginRight: '8px' }}/> Sync Global Watchlists</>}
+                    {saving ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite', marginRight: '8px' }} /> Initializing Sync...</> : <><Database size={14} style={{ marginRight: '8px' }}/> Sync Global Watchlists</>}
                   </button>
                 </div>
               </div>
