@@ -264,7 +264,7 @@ class ApiClient {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `report-${id}.pdf`;
+    a.download = `report-${id}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

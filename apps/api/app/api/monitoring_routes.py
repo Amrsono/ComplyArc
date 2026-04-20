@@ -66,12 +66,12 @@ async def list_monitoring(
             "client_name": client.name if client else "Unknown",
             "client_type": client.type if client else "unknown",
             "frequency": mon.frequency or "daily",
-            "sanctions": mon.sanctions_enabled if hasattr(mon, 'sanctions_enabled') else True,
-            "pep": mon.pep_enabled if hasattr(mon, 'pep_enabled') else True,
-            "media": mon.media_enabled if hasattr(mon, 'media_enabled') else False,
+            "sanctions": mon.include_sanctions,
+            "pep": mon.include_pep,
+            "media": mon.include_adverse_media,
             "is_active": mon.is_active,
             "last_screened": mon.last_screened.isoformat() if mon.last_screened else None,
-            "next_review": mon.next_review_date.isoformat() if mon.next_review_date else None,
+            "next_review": mon.next_screening.isoformat() if mon.next_screening else None,
             "alerts_count": 0,
         })
 
@@ -98,6 +98,9 @@ async def register_monitoring(
     mon = Monitoring(
         client_id=request.client_id,
         frequency=request.frequency,
+        include_sanctions=request.sanctions,
+        include_pep=request.pep,
+        include_adverse_media=request.media,
         is_active=True,
     )
     db.add(mon)

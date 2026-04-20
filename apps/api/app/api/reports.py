@@ -18,6 +18,7 @@ from app.models.client import Client
 from app.models.screening import ScreeningResult
 from app.models.case import Case
 from app.models.report import Report
+from app.models.audit_log import AuditLog
 from app.services.audit_service import audit_service
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
@@ -71,24 +72,74 @@ async def generate_report(
     title = request.title or f"{request.report_type.replace('_', ' ').title()} Report — {now.strftime('%B %Y')}"
     report_id = str(uuid.uuid4())
 
-    # Build the report data payload based on DB entries
-    report_data = []
-    
-    # Example generic payload extraction for CSV based on active clients
-    clients_res = await db.execute(select(Client))
-    clients = clients_res.scalars().all()
-    
-    for c in clients:
-        report_data.append({
-            "Client ID": c.id,
-            "Name": c.name,
-            "Type": c.type,
-            "Country": c.country,
-            "Risk Level": c.risk_level,
-            "Risk Score": c.risk_score,
-            "Status": c.status,
-            "Onboarding Channel": getattr(c, "onboarding_channel", "N/A"),
-        })
+    # Define date filters
+    from dateutil import parser
+    try:
+        df_start = parser.isoparse(request.date_from).replace(tzinfo=timezone.utc) if request.date_from else None
+        df_end = parser.isoparse(request.date_to).replace(tzinfo=timezone.utc) if request.date_to else None
+    except Exception:
+        df_start = df_end = None
+
+    # Build the report data payload based on report_type
+    if request.report_type == "screening":
+        q = select(ScreeningResult)
+        if df_start: q = q.where(ScreeningResult.created_at >= df_start)
+        if df_end: q = q.where(ScreeningResult.created_at <= df_end)
+        res = await db.execute(q)
+        items = res.scalars().all()
+        for i in items:
+            report_data.append({
+                "Date": i.created_at.strftime("%Y-%m-%d %H:%M"),
+                "Entity": i.screened_entity,
+                "Match Name": i.matched_name,
+                "List": i.matched_list,
+                "Score": f"{i.match_score:.1f}%",
+                "Decision": i.decision
+            })
+    elif request.report_type == "risk":
+        from app.models.risk_score import RiskScore
+        q = select(Client, RiskScore).join(RiskScore, Client.id == RiskScore.client_id)
+        if df_start: q = q.where(RiskScore.created_at >= df_start)
+        res = await db.execute(q)
+        for c, rs in res.all():
+            report_data.append({
+                "Client": c.name,
+                "Country": c.country,
+                "Total Risk Score": rs.total_score,
+                "Risk Level": rs.risk_level,
+                "Client Factor": rs.client_risk,
+                "Geography Factor": rs.geography_risk,
+                "Product Factor": rs.product_risk,
+                "Last Updated": rs.created_at.strftime("%Y-%m-%d")
+            })
+    elif request.report_type == "audit":
+        q = select(AuditLog)
+        if df_start: q = q.where(AuditLog.created_at >= df_start)
+        res = await db.execute(q)
+        for l in res.scalars().all():
+            report_data.append({
+                "Timestamp": l.created_at.isoformat(),
+                "User": l.user_email,
+                "Action": l.action,
+                "Resource": l.resource_type,
+                "Description": l.description
+            })
+    else:  # compliance / default (client list)
+        q = select(Client)
+        if df_start: q = q.where(Client.created_at >= df_start)
+        res = await db.execute(q)
+        clients = res.scalars().all()
+        for c in clients:
+            report_data.append({
+                "Client ID": c.id,
+                "Name": c.name,
+                "Type": c.type,
+                "Country": c.country,
+                "Risk Level": c.risk_level,
+                "Risk Score": c.risk_score,
+                "Status": c.status,
+                "Created At": c.created_at.strftime("%Y-%m-%d") if c.created_at else "N/A"
+            })
 
     # Convert to pandas DataFrame and save
     df = pd.DataFrame(report_data)
