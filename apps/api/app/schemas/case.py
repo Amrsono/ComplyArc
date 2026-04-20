@@ -64,7 +64,7 @@ class CaseResponse(BaseModel):
 
 
 class CaseListResponse(BaseModel):
-    cases: List[CaseResponse]
+    items: List[CaseResponse]
     total: int
     page: int
     page_size: int

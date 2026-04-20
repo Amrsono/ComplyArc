@@ -104,7 +104,7 @@ class CaseService:
         cases = result.scalars().all()
 
         return CaseListResponse(
-            cases=[CaseResponse.model_validate(c) for c in cases],
+            items=[CaseResponse.model_validate(c) for c in cases],
             total=total,
             page=page,
             page_size=page_size,

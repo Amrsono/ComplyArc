@@ -109,7 +109,7 @@ class ClientService:
         clients = result.scalars().all()
 
         return ClientListResponse(
-            clients=[ClientResponse.model_validate(c) for c in clients],
+            items=[ClientResponse.model_validate(c) for c in clients],
             total=total,
             page=page,
             page_size=page_size,

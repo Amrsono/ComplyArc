@@ -67,7 +67,7 @@ class ClientResponse(BaseModel):
 
 
 class ClientListResponse(BaseModel):
-    clients: List[ClientResponse]
+    items: List[ClientResponse]
     total: int
     page: int
     page_size: int

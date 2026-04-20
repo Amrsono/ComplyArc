@@ -71,7 +71,7 @@ class AuditService:
         logs = result.scalars().all()
 
         return AuditLogListResponse(
-            logs=[AuditLogResponse.model_validate(l) for l in logs],
+            items=[AuditLogResponse.model_validate(l) for l in logs],
             total=total,
             page=page,
             page_size=page_size,
