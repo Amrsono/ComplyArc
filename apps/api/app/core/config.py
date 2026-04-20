@@ -44,6 +44,12 @@ class Settings(BaseSettings):
 
     # â”€â”€â”€ Security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     SECRET_KEY: str = "complyarc-dev-secret-key-change-me-in-production"
+    
+    @property
+    def is_secret_key_secure(self) -> bool:
+        """Check if SECRET_KEY has been changed from default."""
+        return self.SECRET_KEY != "complyarc-dev-secret-key-change-me-in-production"
+
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 1440  # 24 hours
     API_KEY_HEADER: str = "X-API-Key"

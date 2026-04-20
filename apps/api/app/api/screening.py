@@ -71,7 +71,12 @@ async def batch_screen(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Screen multiple entities in batch."""
+    """Screen multiple entities in batch (max 100)."""
+    if len(request.entities) > 100:
+        raise HTTPException(
+            status_code=400, 
+            detail="Batch size limit exceeded. Maximum 100 entities per request."
+        )
     result = await screening_service.batch_screen(db, request, screened_by=user.id)
 
     await audit_service.log(

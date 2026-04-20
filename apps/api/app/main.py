@@ -38,7 +38,11 @@ async def lifespan(app: FastAPI):
         logger.warning(f"âš ï¸  Database initialization deferred: {e}")
         logger.warning("   The API will start without DB â€” retry on first request")
 
-    logger.info("âœ… ComplyArc API ready")
+    # Security verification
+    if not settings.is_secret_key_secure:
+        logger.warning("🚨 [SECURITY WARNING] Default SECRET_KEY in use! Change this for production.")
+
+    logger.info("✅ ComplyArc API ready")
     yield
     logger.info("ðŸ›‘ Shutting down ComplyArc API...")
 
@@ -61,6 +65,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# â”€â”€â”€ Security Headers Middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 
 # â”€â”€â”€ Global Exception Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -105,6 +119,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # â”€â”€â”€ Register API Routers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from app.api.auth import router as auth_router
+from app.core.deps import require_role
+from app.models.user import User
+from fastapi import Depends
 from app.api.screening import router as screening_router
 from app.api.clients import router as clients_router
 from app.api.risk import router as risk_router
@@ -141,7 +158,10 @@ async def health_check():
 
 # â”€â”€â”€ Sanctions Data Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.post("/api/v1/admin/ingest-sanctions", tags=["Admin"])
-async def ingest_sanctions(request: Request):
+async def ingest_sanctions(
+    request: Request,
+    admin_user: User = Depends(require_role("admin")),
+):
     """Trigger sanctions list ingestion (admin only)."""
     from app.services.sanctions_ingestor import sanctions_ingestor
     from app.db.base import get_db
