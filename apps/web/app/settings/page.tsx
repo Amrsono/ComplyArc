@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { ShieldAlert } from 'lucide-react';
+import { 
+  Settings as SettingsIcon, Key, Users, Bell, Shield, 
+  Globe, Database, Zap, Loader2, ShieldAlert 
+} from 'lucide-react';
 
 const settingsSections = [
   { icon: Globe, label: 'Organization', id: 'org' },
