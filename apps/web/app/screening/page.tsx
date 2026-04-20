@@ -64,7 +64,7 @@ export default function ScreeningPage() {
     try {
       const caseData = await api.createCase({
         title: `${match.matched_list} Match — ${match.matched_name}`,
-        type: 'sanctions_match',
+        case_type: 'sanctions_match',
         priority: match.match_confidence === 'high' ? 'critical' : 'high',
         client_name: query,
       });

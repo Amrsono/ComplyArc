@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.models.case import Case, CaseNote, CaseStatus
+from app.services.client_service import client_service
 from app.schemas.case import (
     CaseCreateRequest, CaseUpdateRequest, CaseResponse,
     CaseListResponse, CaseNoteRequest, CaseNoteResponse,
@@ -31,10 +32,19 @@ class CaseService:
     async def create_case(
         self, db: AsyncSession, request: CaseCreateRequest, created_by: Optional[str] = None
     ) -> Case:
+        # Resolve client_id if missing but client_name is present
+        client_id = request.client_id
+        if not client_id and request.client_name:
+            client = await client_service.get_or_create_by_name(db, request.client_name)
+            client_id = client.id
+
+        if not client_id:
+            raise ValueError("Either client_id or client_name must be provided")
+
         case_number = await self._generate_case_number(db)
         case = Case(
             case_number=case_number,
-            client_id=request.client_id,
+            client_id=client_id,
             title=request.title,
             description=request.description,
             case_type=request.case_type,

@@ -19,7 +19,7 @@ export default function CasesPage() {
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
   const [selectedCase, setSelectedCase] = useState<any>(null);
-  const [newForm, setNewForm] = useState({ title: '', type: 'sanctions_match', priority: 'medium', client_name: '' });
+  const [newForm, setNewForm] = useState({ title: '', case_type: 'sanctions_match', priority: 'medium', client_name: '' });
   const [noteText, setNoteText] = useState('');
   const [notes, setNotes] = useState<any[]>([]);
 
@@ -42,7 +42,7 @@ export default function CasesPage() {
       await api.createCase(newForm);
       success('Case created');
       setShowNewModal(false);
-      setNewForm({ title: '', type: 'sanctions_match', priority: 'medium', client_name: '' });
+      setNewForm({ title: '', case_type: 'sanctions_match', priority: 'medium', client_name: '' });
       fetchCases();
     } catch (err: any) {
       showError(err.message);
@@ -183,7 +183,7 @@ export default function CasesPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
               <div className="input-group">
                 <label>Type</label>
-                <select className="input" value={newForm.type} onChange={e => setNewForm(f => ({ ...f, type: e.target.value }))}>
+                <select className="input" value={newForm.case_type} onChange={e => setNewForm(f => ({ ...f, case_type: e.target.value }))}>
                   <option value="sanctions_match">Sanctions Match</option>
                   <option value="adverse_media">Adverse Media</option>
                   <option value="pep_match">PEP Match</option>

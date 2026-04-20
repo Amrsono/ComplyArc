@@ -48,6 +48,23 @@ class ClientService:
         await db.flush()
         return client
 
+    async def get_or_create_by_name(self, db: AsyncSession, name: str) -> Client:
+        """Find an existing client by name or create a shell client."""
+        result = await db.execute(select(Client).where(Client.name.ilike(name)))
+        client = result.scalar_one_or_none()
+
+        if not client:
+            client = Client(
+                name=name,
+                type="individual",  # Default for screening matches if unknown
+                status=ClientStatus.PENDING,
+            )
+            db.add(client)
+            await db.flush()
+            logger.info(f"Created shell client for screening: {name}")
+
+        return client
+
     async def get_client(self, db: AsyncSession, client_id: str) -> Optional[Client]:
         result = await db.execute(select(Client).where(Client.id == client_id))
         return result.scalar_one_or_none()

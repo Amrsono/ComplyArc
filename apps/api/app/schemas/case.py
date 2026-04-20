@@ -7,7 +7,8 @@ from datetime import datetime
 
 
 class CaseCreateRequest(BaseModel):
-    client_id: str
+    client_id: Optional[str] = None
+    client_name: Optional[str] = None
     title: str
     description: Optional[str] = None
     case_type: str  # sanctions_match, pep_match, adverse_media, risk_escalation, monitoring_alert
