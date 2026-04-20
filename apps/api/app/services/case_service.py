@@ -32,13 +32,18 @@ class CaseService:
     async def create_case(
         self, db: AsyncSession, request: CaseCreateRequest, created_by: Optional[str] = None
     ) -> Case:
+        logger.info(f"Creating case: {request.title} (client_id: {request.client_id}, client_name: {request.client_name})")
+        
         # Resolve client_id if missing but client_name is present
         client_id = request.client_id
         if not client_id and request.client_name:
+            logger.info(f"Attempting to resolve client by name: {request.client_name}")
             client = await client_service.get_or_create_by_name(db, request.client_name)
             client_id = client.id
+            logger.info(f"Resolved to client_id: {client_id}")
 
         if not client_id:
+            logger.error("Case creation failed: No client_id or client_name provided")
             raise ValueError("Either client_id or client_name must be provided")
 
         case_number = await self._generate_case_number(db)
@@ -56,7 +61,13 @@ class CaseService:
             status=CaseStatus.OPEN,
         )
         db.add(case)
-        await db.flush()
+        try:
+            await db.flush()
+            logger.info(f"Case {case_number} created successfully with ID {case.id}")
+        except Exception as e:
+            logger.error(f"Database error during case creation: {e}", exc_info=True)
+            raise
+            
         return case
 
     async def get_case(self, db: AsyncSession, case_id: str) -> Optional[Case]:

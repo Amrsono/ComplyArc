@@ -20,18 +20,18 @@ class AdverseMedia(Base):
     )
 
     # â”€â”€â”€ Article Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    entity_name: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
+    entity_name: Mapped[str] = mapped_column(String(1000), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(1000), nullable=True)
-    source: Mapped[str] = mapped_column(String(500), nullable=True)
+    source: Mapped[str] = mapped_column(String(1000), nullable=True)
     source_url: Mapped[str] = mapped_column(Text, nullable=True)
-    published_date: Mapped[str] = mapped_column(String(10), nullable=True)
+    published_date: Mapped[str] = mapped_column(String(50), nullable=True)
     snippet: Mapped[str] = mapped_column(Text, nullable=True)
 
     # â”€â”€â”€ AI Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     category: Mapped[str] = mapped_column(
-        String(50), nullable=True
+        String(255), nullable=True
     )  # fraud, corruption, terrorism, money_laundering, sanctions_evasion, other
-    severity: Mapped[str] = mapped_column(String(20), nullable=True)  # low, medium, high, critical
+    severity: Mapped[str] = mapped_column(String(255), nullable=True)  # low, medium, high, critical
     relevance_score: Mapped[float] = mapped_column(Float, nullable=True)  # 0-100
     confidence_score: Mapped[float] = mapped_column(Float, nullable=True)  # 0-100
 

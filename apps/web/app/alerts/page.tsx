@@ -63,6 +63,7 @@ export default function AlertsPage() {
         case_type: alert.type,
         priority: alert.severity === 'high' ? 'high' : 'medium',
         client_id: alert.client_id,
+        client_name: alert.client,
       });
       success('Case created from alert');
       router.push('/cases');

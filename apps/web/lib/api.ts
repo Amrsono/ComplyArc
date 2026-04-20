@@ -60,14 +60,34 @@ class ApiClient {
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, config);
-
+    
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-      let errorMessage = error.detail;
-      if (Array.isArray(errorMessage)) {
-        errorMessage = errorMessage.map((e: any) => `${e.loc?.[e.loc.length - 1] || e.loc}: ${e.msg}`).join(', ');
+      let errorDetail = 'Request failed';
+      let errorType = 'UnknownError';
+      
+      try {
+        const error = await response.json();
+        errorDetail = error.detail || error.message || 'Request failed';
+        errorType = error.type || 'ServerError';
+
+        if (Array.isArray(errorDetail)) {
+          errorDetail = errorDetail.map((e: any) => `${e.loc?.[e.loc.length - 1] || e.loc}: ${e.msg}`).join(', ');
+        }
+      } catch (e) {
+        // Fallback for non-JSON responses
+        errorDetail = await response.text().catch(() => `HTTP ${response.status}`);
       }
-      throw new Error(errorMessage || `HTTP ${response.status}`);
+
+      console.error(`[API Error] ${method} ${endpoint}:`, { 
+        status: response.status, 
+        detail: errorDetail,
+        type: errorType
+      });
+
+      const err = new Error(errorDetail);
+      (err as any).status = response.status;
+      (err as any).type = errorType;
+      throw err;
     }
 
     return response.json();

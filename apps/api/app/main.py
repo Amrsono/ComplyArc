@@ -67,9 +67,39 @@ app.add_middleware(
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error: {exc}", exc_info=True)
+    
+    # Extract error details
+    error_type = type(exc).__name__
+    error_detail = str(exc)
+    
+    # Special handling for SQLAlchemy errors to provide cleaner messages
+    if "StringDataRightTruncationError" in error_type or "DataError" in error_type:
+        error_detail = "Data value too long for database column. Please check field lengths."
+    
+    # Manually add CORS headers if available, otherwise browser reports 'Failed to fetch'
+    headers = {}
+    origin = request.headers.get("origin")
+    
+    # If settings.CORS_ORIGINS is ["*"], we can allow any origin
+    if "*" in settings.cors_origins_list:
+        headers["Access-Control-Allow-Origin"] = origin or "*"
+        headers["Access-Control-Allow-Credentials"] = "true"
+    elif origin and origin in settings.cors_origins_list:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+    
+    # Always include these for transparency during debugging
+    headers["Access-Control-Allow-Methods"] = "*"
+    headers["Access-Control-Allow-Headers"] = "*"
+
     return JSONResponse(
         status_code=500,
-        content={"detail": str(exc), "type": str(type(exc).__name__)},
+        content={
+            "detail": error_detail,
+            "type": error_type,
+            "path": request.url.path,
+        },
+        headers=headers
     )
 
 
