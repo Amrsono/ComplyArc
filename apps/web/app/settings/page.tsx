@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings as SettingsIcon, Key, Users, Bell, Shield, Globe, Database, Zap, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { ShieldAlert } from 'lucide-react';
 
 const settingsSections = [
   { icon: Globe, label: 'Organization', id: 'org' },
@@ -15,8 +16,28 @@ const settingsSections = [
 ];
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const { success } = useToast();
   const [activeSection, setActiveSection] = useState('org');
+
+  if (user?.email !== 'admin@arc.com') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
+        <div style={{
+          width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px'
+        }}>
+          <ShieldAlert size={40} style={{ color: 'var(--risk-high)' }} />
+        </div>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>Access Restricted</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', lineHeight: 1.6 }}>
+          The settings panel is reserved for authorized system administrators only. 
+          Please contact your IT department if you believe this is an error.
+        </p>
+      </div>
+    );
+  }
+
   const [saving, setSaving] = useState(false);
   const [orgForm, setOrgForm] = useState({ name: 'ComplyArc Enterprise', industry: 'Financial Services', email: 'compliance@company.com', jurisdiction: 'United Arab Emirates' });
   const [riskForm, setRiskForm] = useState({ highThreshold: '4.0', medThreshold: '2.5', highConfidence: '85', medConfidence: '70' });

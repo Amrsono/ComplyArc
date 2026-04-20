@@ -74,6 +74,11 @@ export function Sidebar() {
           }
 
           if ('href' in item && 'icon' in item) {
+            // Role-based visibility check for Settings
+            if (item.label === 'Settings' && user?.email !== 'admin@arc.com') {
+              return null;
+            }
+
             const Icon = item.icon!;
             const isActive = pathname === item.href || 
               (item.href !== '/' && pathname?.startsWith(item.href!));
