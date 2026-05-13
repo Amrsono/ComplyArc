@@ -1,6 +1,6 @@
 """
-ComplyArc â€” FastAPI Application Entry Point
-Deployment Trigger: 2026-05-13
+ComplyArc — FastAPI Application Entry Point
+Deployment Trigger: 2026-05-13 v3
 """
 import logging
 from contextlib import asynccontextmanager
@@ -23,21 +23,21 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup/shutdown lifecycle."""
-    logger.info("ðŸš€ Starting ComplyArc API...")
+    logger.info("🚀 Starting ComplyArc API...")
     logger.info(f"   Environment: {settings.ENVIRONMENT}")
     logger.info(f"   Version: {settings.APP_VERSION}")
     logger.info(f"   Database URL: {settings.DATABASE_URL[:30]}...")
 
-    # Create database tables (resilient â€” don't crash if DB isn't ready)
+    # Create database tables (resilient — don't crash if DB isn't ready)
     try:
         await create_tables()
         async with async_session_factory() as session:
             await init_db(session)
             await session.commit()
-        logger.info("âœ… Database initialized successfully")
+        logger.info("✅ Database initialized successfully")
     except Exception as e:
-        logger.warning(f"âš ï¸  Database initialization deferred: {e}")
-        logger.warning("   The API will start without DB â€” retry on first request")
+        logger.warning(f"⚠️  Database initialization deferred: {e}")
+        logger.warning("   The API will start without DB — retry on first request")
 
     # Security verification
     if not settings.is_secret_key_secure:
@@ -45,20 +45,20 @@ async def lifespan(app: FastAPI):
 
     logger.info("✅ ComplyArc API ready")
     yield
-    logger.info("ðŸ›‘ Shutting down ComplyArc API...")
+    logger.info("🛑 Shutting down ComplyArc API...")
 
 
-# â”€â”€â”€ Create Application â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Create Application ——————————————————————————
 app = FastAPI(
     title="ComplyArc API",
-    description="AI-Native AML & eKYC Operating System â€” Sanctions Screening, PEP Detection, Adverse Media AI, Risk Scoring Engine",
+    description="AI-Native AML & eKYC Operating System — Sanctions Screening, PEP Detection, Adverse Media AI, Risk Scoring Engine",
     version=settings.APP_VERSION,
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# â”€â”€â”€ CORS Middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— CORS Middleware ——————————————————————————————
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -67,7 +67,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# â”€â”€â”€ Security Headers Middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Security Headers Middleware ——————————————————
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -78,7 +78,7 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
-# â”€â”€â”€ Global Exception Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Global Exception Handler ————————————————————
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error: {exc}", exc_info=True)
@@ -118,7 +118,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# â”€â”€â”€ Register API Routers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Register API Routers ————————————————————————
 from app.api.auth import router as auth_router
 from app.core.deps import require_role
 from app.models.user import User
@@ -145,7 +145,7 @@ app.include_router(monitoring_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 
 
-# â”€â”€â”€ Root Redirect / Welcome â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Root Redirect / Welcome ——————————————————————
 @app.get("/", tags=["System"])
 async def root():
     """Welcome message and API discovery."""
@@ -158,7 +158,7 @@ async def root():
     }
 
 
-# â”€â”€â”€ Health Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Health Check ————————————————————————————————
 @app.get("/health", tags=["System"])
 async def health_check():
     return {
@@ -170,20 +170,20 @@ async def health_check():
     }
 
 
-# â”€â”€â”€ Sanctions Data Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——— Sanctions Data Management ————————————————————
 async def run_sanctions_ingestion():
     """Background task for ingestion."""
     from app.services.sanctions_ingestor import sanctions_ingestor
     from app.db.base import async_session_factory
     
-    logger.info("âš«ï¸   Background sanctions ingestion started...")
+    logger.info("⚫️  Background sanctions ingestion started...")
     try:
         async with async_session_factory() as db:
             stats = await sanctions_ingestor.ingest_all(db)
             await db.commit()
-            logger.info(f"âœ… Background ingestion completed: {stats}")
+            logger.info(f"✅ Background ingestion completed: {stats}")
     except Exception as e:
-        logger.error(f"â Œ Background ingestion failed: {e}", exc_info=True)
+        logger.error(f"❌ Background ingestion failed: {e}", exc_info=True)
 
 @app.post("/api/v1/admin/ingest-sanctions", tags=["Admin"], status_code=202)
 async def ingest_sanctions(
