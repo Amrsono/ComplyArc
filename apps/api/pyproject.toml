@@ -47,4 +47,4 @@ dev = [
 ]
 
 [tool.vercel]
-entrypoint = "main.py"
+entrypoint = "api/index.py"
