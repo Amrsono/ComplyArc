@@ -1,5 +1,6 @@
 """
 ComplyArc â€” FastAPI Application Entry Point
+Deployment Trigger: 2026-05-13
 """
 import logging
 from contextlib import asynccontextmanager
