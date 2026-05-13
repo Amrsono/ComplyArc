@@ -16,27 +16,51 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # â”€â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    DATABASE_URL: str = "postgresql+asyncpg://complyarc:complyarc_secret@localhost:5432/complyarc"
-    DATABASE_URL_SYNC: str = "postgresql://complyarc:complyarc_secret@localhost:5432/complyarc"
+    # Supports Vercel Postgres (POSTGRES_URL) and generic DATABASE_URL
+    DATABASE_URL: str = "sqlite+aiosqlite:///./complyarc.db"
+    
+    @property
+    def effective_database_url(self) -> str:
+        """Priority: POSTGRES_URL (Vercel) > DATABASE_URL > Default."""
+        # Note: Pydantic BaseSettings can also be configured to handle this via Field(validation_alias=...)
+        # but manual property is very explicit for various hosting providers.
+        return os.getenv("POSTGRES_URL") or self.DATABASE_URL
 
     @property
     def database_url_async(self) -> str:
-        """Convert Render's postgres:// to postgresql+asyncpg:// for SQLAlchemy async."""
-        url = self.DATABASE_URL
+        """Convert postgres:// to postgresql+asyncpg:// and ensure SSL for production."""
+        url = self.effective_database_url
+        
+        # 1. Driver conversion
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            
+        # 2. SSL Enforcement for production (Vercel/Neon require this)
+        if "postgresql" in url and ("production" in self.ENVIRONMENT.lower() or "vercel" in os.getenv("VERCEL", "").lower()):
+            if "sslmode" not in url and "ssl" not in url:
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}sslmode=require"
+                
         return url
 
     @property
     def database_url_sync_computed(self) -> str:
-        """Convert Render's postgres:// to postgresql:// for Alembic / sync drivers."""
-        url = self.DATABASE_URL
+        """Convert to postgresql:// for Alembic / sync drivers and ensure SSL."""
+        url = self.effective_database_url
+        
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
         elif url.startswith("postgresql+asyncpg://"):
             url = url.replace("postgresql+asyncpg://", "postgresql://", 1)
+            
+        # SSL for sync drivers too
+        if "postgresql" in url and ("production" in self.ENVIRONMENT.lower() or "vercel" in os.getenv("VERCEL", "").lower()):
+            if "sslmode" not in url and "ssl" not in url:
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}sslmode=require"
+                
         return url
 
     # â”€â”€â”€ Redis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

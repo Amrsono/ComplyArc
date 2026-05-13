@@ -6,13 +6,33 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
-# â”€â”€â”€ Async Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+import os
+
+# â”€â”€â”€ Engine Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+is_vercel = os.getenv("VERCEL") == "1"
+engine_kwargs = {
+    "echo": settings.DEBUG,
+    "pool_pre_ping": True,
+}
+
+# SQLite doesn't support pool_size/max_overflow the same way as Postgres
+if "sqlite" not in settings.database_url_async:
+    if is_vercel:
+        # Lower pool size for serverless functions to avoid hitting connection limits
+        engine_kwargs.update({
+            "pool_size": 5,
+            "max_overflow": 0,
+            "pool_recycle": 3600,
+        })
+    else:
+        engine_kwargs.update({
+            "pool_size": 20,
+            "max_overflow": 10,
+        })
+
 engine = create_async_engine(
     settings.database_url_async,
-    echo=settings.DEBUG,
-    pool_size=20,
-    max_overflow=10,
-    pool_pre_ping=True,
+    **engine_kwargs
 )
 
 # â”€â”€â”€ Session Factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
