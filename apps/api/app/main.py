@@ -144,6 +144,19 @@ app.include_router(monitoring_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 
 
+# â”€â”€â”€ Root Redirect / Welcome â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.get("/", tags=["System"])
+async def root():
+    """Welcome message and API discovery."""
+    return {
+        "message": "Welcome to ComplyArc AI-Native API",
+        "status": "online",
+        "documentation": "/docs",
+        "health_check": "/health",
+        "version": settings.APP_VERSION
+    }
+
+
 # â”€â”€â”€ Health Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.get("/health", tags=["System"])
 async def health_check():
