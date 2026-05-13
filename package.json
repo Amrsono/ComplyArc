@@ -8,7 +8,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "dev:web": "turbo run dev --filter=@complyarc/web",
-    "dev:api": "cd apps/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:api": "cd apps/api && uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
     "build:web": "turbo run build --filter=@complyarc/web",
     "db:migrate": "cd apps/api && alembic upgrade head",
     "db:revision": "cd apps/api && alembic revision --autogenerate"
@@ -16,5 +16,5 @@
   "devDependencies": {
     "turbo": "^2.0.0"
   },
-  "packageManager": "pnpm@9.0.0"
+  "packageManager": "pnpm@9.1.0"
 }
