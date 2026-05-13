@@ -57,13 +57,24 @@ app = FastAPI(
 )
 
 # ——— CORS Middleware ——————————————————————————————
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# If CORS_ORIGINS is "*" or empty, we use a more permissive setup for initial deployment
+origins = settings.cors_origins_list
+if "*" in origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex="https://.*\.vercel\.app", # Allow all Vercel previews
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # ——— Root Welcome ————————————————————————————————
 @app.get("/", tags=["System"])
