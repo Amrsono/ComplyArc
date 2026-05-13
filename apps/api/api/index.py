@@ -62,6 +62,11 @@ origins = settings.cors_origins_list
 if "*" in origins:
     app.add_middleware(
         CORSMiddleware,
+        allow_origins=[
+            "https://comply-arc-web.vercel.app",
+            "https://comply-arc-web-t1ub.vercel.app",
+            "https://comply-arc-web-amrsonos-projects.vercel.app"
+        ],
         allow_origin_regex="https://.*\.vercel\.app", # Allow all Vercel previews
         allow_credentials=True,
         allow_methods=["*"],
