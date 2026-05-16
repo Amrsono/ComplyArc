@@ -68,8 +68,12 @@ class ApiClient {
       config.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, config);
-    
+    const fullUrl = `${this.baseUrl}${endpoint}`;
+    if (typeof window !== 'undefined') {
+      console.log(`[API Request] ${method} ${fullUrl}`);
+    }
+
+    const response = await fetch(fullUrl, config);
     if (!response.ok) {
       let errorDetail = 'Request failed';
       let errorType = 'UnknownError';
