@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.db.base import async_session_factory
@@ -95,10 +96,21 @@ async def root():
 # ——— Health Check ————————————————————————————————
 @app.get("/api/health", tags=["System"])
 async def health_check():
+    db_status = "unknown"
+    try:
+        async with async_session_factory() as session:
+            # Simple query to test connection
+            await session.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+        logger.error(f"❌ Database health check failed: {e}")
+
     return {
-        "status": "healthy",
+        "status": "healthy" if "error" not in db_status else "degraded",
+        "database": db_status,
         "service": "ComplyArc API",
-        "deploy_check": "v3_api_index"
+        "deploy_check": "v4_db_check"
     }
 
 
