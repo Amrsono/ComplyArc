@@ -3,7 +3,7 @@
  * Centralized HTTP client for backend communication
  */
 
-let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+let API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
 // Ensure no trailing slash to avoid double slashes in concatenation
 if (API_URL.endsWith('/')) {
