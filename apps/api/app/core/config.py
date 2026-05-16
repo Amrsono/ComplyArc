@@ -37,11 +37,15 @@ class Settings(BaseSettings):
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
             
-        # 2. SSL Enforcement for production (Vercel/Neon require this)
+        # 2. Fix SSL parameter for asyncpg (it uses 'ssl' not 'sslmode')
+        if "sslmode=" in url:
+            url = url.replace("sslmode=", "ssl=")
+
+        # 3. SSL Enforcement for production (Vercel/Neon require this)
         if "postgresql" in url and ("production" in self.ENVIRONMENT.lower() or "vercel" in os.getenv("VERCEL", "").lower()):
-            if "sslmode" not in url and "ssl" not in url:
+            if "ssl=" not in url:
                 separator = "&" if "?" in url else "?"
-                url = f"{url}{separator}sslmode=require"
+                url = f"{url}{separator}ssl=require"
                 
         return url
 
