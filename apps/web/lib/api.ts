@@ -3,7 +3,16 @@
  * Centralized HTTP client for backend communication
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+// Ensure no trailing slash to avoid double slashes in concatenation
+if (API_URL.endsWith('/')) {
+  API_URL = API_URL.slice(0, -1);
+}
+
+if (typeof window !== 'undefined') {
+  console.log(`[API Client] Initialized with Base URL: ${API_URL}`);
+}
 
 interface RequestOptions {
   method?: string;

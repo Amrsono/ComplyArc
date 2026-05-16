@@ -101,6 +101,20 @@ async def health_check():
         "deploy_check": "v3_api_index"
     }
 
+
+# ——— Debug / Diagnostics —————————————————————————
+@app.get("/api/v1/debug/config", tags=["System"])
+async def debug_config():
+    """Check if environment variables are set without exposing values."""
+    return {
+        "DATABASE_URL_SET": bool(os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")),
+        "OPENAI_API_KEY_SET": bool(os.getenv("OPENAI_API_KEY")),
+        "SECRET_KEY_SET": bool(os.getenv("SECRET_KEY")),
+        "ENVIRONMENT": os.getenv("ENVIRONMENT", "development"),
+        "VERCEL": bool(os.getenv("VERCEL")),
+        "CORS_ORIGINS": os.getenv("CORS_ORIGINS", "Default (index.py)"),
+    }
+
 # ——— Register API Routers ————————————————————————
 from app.api.auth import router as auth_router
 from app.api.screening import router as screening_router
@@ -123,3 +137,19 @@ app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(monitoring_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
+
+
+# ——— Catch-all for 404 Diagnostics ————————————————
+@app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+async def catch_all(request: Request, path_name: str):
+    """Diagnose 404s by showing what was requested."""
+    logger.warning(f"⚠️ 404 Not Found: {request.method} {request.url.path}")
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": f"Route not found: {request.method} {path_name}",
+            "hint": "Ensure your request includes the /api/v1 prefix if applicable.",
+            "requested_url": str(request.url),
+            "base_url": str(request.base_url)
+        }
+    )

@@ -15,11 +15,8 @@ RUN pip install --no-cache-dir -e ".[dev]" 2>/dev/null || pip install --no-cache
 # Copy application code
 COPY . .
 
-# Make render start script executable
-RUN chmod +x render-start.sh 2>/dev/null || true
-
-# Expose port (Render assigns $PORT dynamically)
+# Expose port
 EXPOSE 8000
 
-# Use render-start.sh for auto-migration + server start
-CMD ["./render-start.sh"]
+# Server start command
+CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
