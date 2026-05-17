@@ -7,7 +7,6 @@ import logging
 from typing import List, Optional
 from datetime import datetime, timezone
 import httpx
-from lxml import etree
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete
 
@@ -63,6 +62,7 @@ class SanctionsIngestor:
 
     async def ingest_ofac(self, db: AsyncSession) -> int:
         """Download and parse OFAC SDN list (XML)."""
+        from lxml import etree  # lazy – avoids module-load failure if lxml wheel missing on Vercel
         logger.info("Ingesting OFAC SDN list...")
 
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -179,6 +179,7 @@ class SanctionsIngestor:
 
     async def ingest_un(self, db: AsyncSession) -> int:
         """Download and parse UN Security Council consolidated list (XML)."""
+        from lxml import etree  # lazy import
         logger.info("Ingesting UN Security Council list...")
 
         async with httpx.AsyncClient(timeout=60.0) as client:
