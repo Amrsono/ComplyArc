@@ -23,7 +23,7 @@ export default function SettingsPage() {
   const { success, error: showError } = useToast();
   const [activeSection, setActiveSection] = useState('org');
 
-  if (user?.email !== 'admin@arc.com') {
+  if (user?.role !== 'admin') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
         <div style={{

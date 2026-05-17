@@ -75,7 +75,7 @@ export function Sidebar() {
 
           if ('href' in item && 'icon' in item) {
             // Role-based visibility check for Settings
-            if (item.label === 'Settings' && user?.email !== 'admin@arc.com') {
+            if (item.label === 'Settings' && user?.role !== 'admin') {
               return null;
             }
 
