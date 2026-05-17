@@ -35,32 +35,48 @@ async def get_settings(
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     
-    result = await db.execute(select(SystemSettings))
-    settings_records = result.scalars().all()
-    
-    from app.core.config import settings
-    
-    # We might want to ensure default keys exist in the response even if not in DB yet
+    from app.core.config import settings as app_settings
+
     defaults = {
-        "news_api_key": ("News API Key for Adverse Media Search", settings.NEWS_API_KEY),
-        "openai_api_key": ("OpenAI API Key for AI Analysis", settings.OPENAI_API_KEY),
+        "news_api_key": ("News API Key for Adverse Media Search", app_settings.NEWS_API_KEY),
+        "openai_api_key": ("OpenAI API Key for AI Analysis", app_settings.OPENAI_API_KEY),
     }
-    
-    # Create missing ones in DB or just return them
-    existing_keys = {s.key: s for s in settings_records}
-    for k, (desc, env_val) in defaults.items():
-        if k not in existing_keys:
-            new_setting = SystemSettings(key=k, value=env_val, description=desc, is_secret=True)
-            db.add(new_setting)
-            settings_records.append(new_setting)
+
+    async def _load_and_seed(session: AsyncSession):
+        result = await session.execute(select(SystemSettings))
+        settings_records = list(result.scalars().all())
+
+        existing_keys = {s.key: s for s in settings_records}
+        for k, (desc, env_val) in defaults.items():
+            if k not in existing_keys:
+                new_setting = SystemSettings(key=k, value=env_val, description=desc, is_secret=True)
+                session.add(new_setting)
+                settings_records.append(new_setting)
+            else:
+                setting = existing_keys[k]
+                if not setting.value and env_val:
+                    setting.value = env_val
+
+        await session.commit()
+        return settings_records
+
+    try:
+        settings_records = await _load_and_seed(db)
+    except Exception as e:
+        err_str = str(e).lower()
+        # Table missing — create it then retry with a fresh session
+        if "does not exist" in err_str or "no such table" in err_str or "undefined" in err_str:
+            import logging
+            logging.getLogger(__name__).warning("system_settings table missing — creating now...")
+            from app.db.init_db import create_tables
+            await create_tables()
+            # Retry with a fresh session
+            from app.db.base import async_session_factory
+            async with async_session_factory() as fresh_db:
+                settings_records = await _load_and_seed(fresh_db)
         else:
-            setting = existing_keys[k]
-            # Backfill from env var if currently empty
-            if not setting.value and env_val:
-                setting.value = env_val
-    
-    await db.commit()
-    
+            raise HTTPException(status_code=500, detail=f"Failed to load settings: {str(e)}")
+
     # Mask secrets
     response = []
     for s in settings_records:
