@@ -51,7 +51,7 @@ def _get_defaults() -> List[SettingResponse]:
 
 # ── GET /settings/ ────────────────────────────────────────────────────────────
 
-@router.get("/", response_model=List[SettingResponse])
+@router.get("/settings", response_model=List[SettingResponse])
 async def get_settings(
     current_user: User = Depends(get_current_user),
 ):
@@ -151,7 +151,7 @@ async def get_settings(
 
 # ── PUT /settings/{key} ───────────────────────────────────────────────────────
 
-@router.put("/{key}", response_model=SettingResponse)
+@router.put("/settings/{key}", response_model=SettingResponse)
 async def update_setting(
     key: str,
     setting_update: SettingUpdate,

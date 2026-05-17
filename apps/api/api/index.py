@@ -151,7 +151,7 @@ app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(monitoring_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
-app.include_router(settings_router, prefix="/api/v1/settings", tags=["Settings"])
+app.include_router(settings_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 
 
