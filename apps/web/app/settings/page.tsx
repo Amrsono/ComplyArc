@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { 
   Settings as SettingsIcon, Key, Users, Bell, Shield, 
-  Globe, Database, Zap, Loader2, ShieldAlert 
+  Globe, Database, Zap, Loader2, ShieldAlert, Pencil, X, Check, Eye, EyeOff
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -16,7 +16,6 @@ const settingsSections = [
   { icon: Bell, labelKey: 'settings.notif', id: 'notif' },
   { icon: Users, labelKey: 'settings.team', id: 'team' },
   { icon: Database, labelKey: 'settings.data', id: 'data' },
-  { icon: Zap, labelKey: 'settings.integ', id: 'integ' },
 ];
 
 export default function SettingsPage() {
@@ -47,12 +46,13 @@ export default function SettingsPage() {
   const [loadingIntegrations, setLoadingIntegrations] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
   const [apiFormValues, setApiFormValues] = useState<Record<string, string>>({});
+  // Per-key edit mode: key => boolean
+  const [editingKey, setEditingKey] = useState<Record<string, boolean>>({});
+  // Per-key show/hide plaintext toggle
+  const [showKey, setShowKey] = useState<Record<string, boolean>>({});
   const [orgForm, setOrgForm] = useState({ name: 'ComplyArc Enterprise', industry: 'Financial Services', email: 'compliance@company.com', jurisdiction: 'United Arab Emirates' });
   const [riskForm, setRiskForm] = useState({ highThreshold: '4.0', medThreshold: '2.5', highConfidence: '85', medConfidence: '70' });
-  const [apiKeys, setApiKeys] = useState([
-    { id: '1', name: 'Production Key', key: 'ctx_a1b2c3d4e5...●●●●', created: '2024-01-15', lastUsed: '2 hours ago', active: true },
-    { id: '2', name: 'Staging Key', key: 'ctx_f6g7h8i9j0...●●●●', created: '2024-03-20', lastUsed: '1 day ago', active: true },
-  ]);
+
 
   const handleSave = async (section: string) => {
     setSaving(true);
@@ -66,7 +66,7 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    if (activeSection === 'integ') {
+    if (activeSection === 'api') {
       loadSystemSettings();
     }
   }, [activeSection]);
@@ -92,32 +92,41 @@ export default function SettingsPage() {
   };
 
   const handleSaveIntegration = async (key: string) => {
+    const newVal = apiFormValues[key] || '';
+    if (!newVal.trim()) {
+      showError('Please enter a valid API key before saving.');
+      return;
+    }
     setSaving(true);
     try {
       const { api } = await import('@/lib/api');
-      await api.updateSystemSetting(key, apiFormValues[key]);
-      success('Integration setting updated');
+      await api.updateSystemSetting(key, newVal);
+      success('API key updated successfully');
+      setEditingKey(prev => ({ ...prev, [key]: false }));
+      setShowKey(prev => ({ ...prev, [key]: false }));
       loadSystemSettings(); // reload to get the masked value back
     } catch (err: any) {
       console.error('Failed to update integration', err);
-      showError('Failed to update integration');
+      showError('Failed to update API key');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleGenerateKey = () => {
-    const newKey = {
-      id: String(apiKeys.length + 1),
-      name: `Key ${apiKeys.length + 1}`,
-      key: `ctx_${Math.random().toString(36).slice(2, 12)}...●●●●`,
-      created: new Date().toISOString().split('T')[0],
-      lastUsed: 'Never',
-      active: true,
-    };
-    setApiKeys(prev => [...prev, newKey]);
-    success('API key generated');
+  const handleStartEdit = (key: string) => {
+    // Clear the masked value so user types a fresh key
+    setApiFormValues(prev => ({ ...prev, [key]: '' }));
+    setEditingKey(prev => ({ ...prev, [key]: true }));
+    setShowKey(prev => ({ ...prev, [key]: false }));
   };
+
+  const handleCancelEdit = (key: string, originalMasked: string) => {
+    setApiFormValues(prev => ({ ...prev, [key]: originalMasked }));
+    setEditingKey(prev => ({ ...prev, [key]: false }));
+    setShowKey(prev => ({ ...prev, [key]: false }));
+  };
+
+
 
   return (
     <div>
@@ -187,26 +196,146 @@ export default function SettingsPage() {
 
           {activeSection === 'api' && (
             <div className="glass-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 600 }}>API Keys</h3>
-                <button className="btn btn-primary btn-sm" onClick={handleGenerateKey}><Key size={14} /> Generate Key</button>
-              </div>
-              <table className="data-table">
-                <thead>
-                  <tr><th>Name</th><th>Key</th><th>Created</th><th>Last Used</th><th>Status</th></tr>
-                </thead>
-                <tbody>
-                  {apiKeys.map(k => (
-                    <tr key={k.id}>
-                      <td style={{ fontWeight: 500 }}>{k.name}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>{k.key}</td>
-                      <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{k.created}</td>
-                      <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{k.lastUsed}</td>
-                      <td><span className="badge badge-active">Active</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>Service API Keys</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px' }}>
+                Manage API keys and connections for external services powering ComplyArc.
+              </p>
+              
+              {loadingIntegrations ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', margin: '0 auto', color: 'var(--accent-primary)' }} />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {systemSettings.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No API keys configured.</p>
+                  ) : (
+                    systemSettings.map(setting => {
+                      const isEditing = editingKey[setting.key] || false;
+                      const isVisible = showKey[setting.key] || false;
+                      const label = setting.key === 'news_api_key' ? 'News API'
+                                  : setting.key === 'openai_api_key' ? 'OpenAI API'
+                                  : setting.key;
+                      const hasValue = setting.value && setting.value !== '';
+
+                      return (
+                        <div key={setting.key} style={{
+                          padding: '20px',
+                          background: 'var(--bg-elevated)',
+                          borderRadius: 'var(--radius-md)',
+                          border: isEditing ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                          transition: 'border-color 0.2s'
+                        }}>
+                          {/* Header row */}
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <Key size={14} style={{ color: 'var(--accent-primary)' }} />
+                                <h4 style={{ fontWeight: 600, fontSize: '14px', margin: 0 }}>{label}</h4>
+                                <span style={{
+                                  fontSize: '10px', fontWeight: 600, padding: '2px 8px',
+                                  borderRadius: '20px', letterSpacing: '0.05em',
+                                  background: hasValue ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
+                                  color: hasValue ? '#22c55e' : '#ef4444'
+                                }}>
+                                  {hasValue ? '● CONFIGURED' : '● NOT SET'}
+                                </span>
+                              </div>
+                              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
+                                {setting.description || `System setting for ${setting.key}`}
+                              </p>
+                            </div>
+                            {!isEditing && (
+                              <button
+                                className="btn"
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: '6px',
+                                  fontSize: '12px', padding: '6px 14px',
+                                  background: 'var(--bg-base)', border: '1px solid var(--border-color)'
+                                }}
+                                onClick={() => handleStartEdit(setting.key)}
+                              >
+                                <Pencil size={12} />
+                                {hasValue ? 'Edit Key' : 'Set Key'}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Masked value display (not editing) */}
+                          {!isEditing && (
+                            <div style={{
+                              display: 'flex', alignItems: 'center', gap: '10px',
+                              padding: '10px 14px',
+                              background: 'var(--bg-base)',
+                              borderRadius: 'var(--radius-sm)',
+                              border: '1px solid var(--border-color)'
+                            }}>
+                              <span style={{ fontFamily: 'monospace', fontSize: '13px', color: hasValue ? 'var(--text-secondary)' : 'var(--text-muted)', flex: 1 }}>
+                                {hasValue ? '••••••••••••••••••••••••' : 'Not configured'}
+                              </span>
+                              {hasValue && (
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Key is set — click "Edit Key" to replace</span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Edit mode */}
+                          {isEditing && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                              <p style={{ fontSize: '12px', color: 'var(--accent-primary)', margin: 0 }}>
+                                ⚡ Enter the new API key below. The existing key will be replaced upon saving.
+                              </p>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <div style={{ position: 'relative', flex: 1 }}>
+                                  <input
+                                    type={isVisible ? 'text' : 'password'}
+                                    className="input"
+                                    autoFocus
+                                    style={{ width: '100%', fontFamily: 'monospace', fontSize: '13px', paddingRight: '40px', boxSizing: 'border-box' }}
+                                    value={apiFormValues[setting.key] || ''}
+                                    placeholder="Paste new API key here..."
+                                    onChange={e => setApiFormValues(prev => ({ ...prev, [setting.key]: e.target.value }))}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowKey(prev => ({ ...prev, [setting.key]: !isVisible }))}
+                                    style={{
+                                      position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                                      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                                      color: 'var(--text-muted)', display: 'flex', alignItems: 'center'
+                                    }}
+                                    title={isVisible ? 'Hide key' : 'Show key'}
+                                  >
+                                    {isVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                                  </button>
+                                </div>
+                                <button
+                                  className="btn btn-primary"
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                                  onClick={() => handleSaveIntegration(setting.key)}
+                                  disabled={saving || !apiFormValues[setting.key]?.trim()}
+                                >
+                                  {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} />}
+                                  Save Key
+                                </button>
+                                <button
+                                  className="btn"
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-base)', border: '1px solid var(--border-color)' }}
+                                  onClick={() => handleCancelEdit(setting.key, '********')}
+                                  disabled={saving}
+                                >
+                                  <X size={13} />
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -289,56 +418,7 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeSection === 'integ' && (
-            <div className="glass-card">
-              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>System Integrations</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px' }}>
-                Manage API keys and connections for external services powering ComplyArc.
-              </p>
-              
-              {loadingIntegrations ? (
-                <div style={{ padding: '40px', textAlign: 'center' }}>
-                  <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', margin: '0 auto', color: 'var(--accent-primary)' }} />
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {systemSettings.length === 0 ? (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No integrations configured.</p>
-                  ) : (
-                    systemSettings.map(setting => (
-                      <div key={setting.key} style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                        <h4 style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
-                          {setting.key === 'news_api_key' ? 'News API' : 
-                           setting.key === 'openai_api_key' ? 'OpenAI API' : setting.key}
-                        </h4>
-                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                          {setting.description || 'System setting for ' + setting.key}
-                        </p>
-                        
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                          <input 
-                            type={setting.is_secret && apiFormValues[setting.key] === '********' ? 'password' : 'text'}
-                            className="input" 
-                            style={{ flex: 1, fontFamily: 'monospace', fontSize: '13px' }}
-                            value={apiFormValues[setting.key] || ''} 
-                            placeholder={setting.is_secret ? 'Enter new secret key...' : 'Enter value...'}
-                            onChange={e => setApiFormValues({ ...apiFormValues, [setting.key]: e.target.value })} 
-                          />
-                          <button 
-                            className="btn btn-primary" 
-                            onClick={() => handleSaveIntegration(setting.key)} 
-                            disabled={saving}
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+
 
           {activeSection === 'data' && (
             <div className="glass-card">
