@@ -36,6 +36,13 @@ class AdverseMediaService:
         "cybercrime", "environmental_crime", "other",
     ]
 
+    @staticmethod
+    def _is_arabic(text: str) -> bool:
+        """Detect if the text contains Arabic characters."""
+        if not text:
+            return False
+        return any('\u0600' <= c <= '\u06FF' for c in text)
+
     async def search_media(
         self,
         db: AsyncSession,
@@ -123,13 +130,21 @@ class AdverseMediaService:
             # Fallback to Google News RSS for real data if no API key is configured
             return await self._get_google_news_rss(entity_name)
 
+        is_arabic_name = self._is_arabic(entity_name)
+        if is_arabic_name:
+            query = f'"{entity_name}" AND (احتيال OR فساد OR عقوبات OR جريمة OR غسيل أموال)'
+            lang = "ar"
+        else:
+            query = f'"{entity_name}" AND (fraud OR corruption OR sanctions OR crime OR money laundering)'
+            lang = "en"
+
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.get(
                     "https://newsapi.org/v2/everything",
                     params={
-                        "q": f'"{entity_name}" AND (fraud OR corruption OR sanctions OR crime OR money laundering)',
-                        "language": "en",
+                        "q": query,
+                        "language": lang,
                         "sortBy": "relevancy",
                         "pageSize": 10,
                         "apiKey": news_api_key,
@@ -156,8 +171,17 @@ class AdverseMediaService:
         """Fetch real news data via Google News RSS as an unauthenticated fallback."""
         import urllib.parse
         from xml.etree import ElementTree as ET
-        query = urllib.parse.quote(f'"{entity_name}" (fraud OR corruption OR sanctions OR crime OR money laundering)')
-        url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+        
+        is_arabic_name = self._is_arabic(entity_name)
+        if is_arabic_name:
+            query_str = f'"{entity_name}" (احتيال OR فساد OR عقوبات OR جريمة OR غسيل أموال)'
+            lang_params = "hl=ar&gl=AE&ceid=AE:ar"
+        else:
+            query_str = f'"{entity_name}" (fraud OR corruption OR sanctions OR crime OR money laundering)'
+            lang_params = "hl=en-US&gl=US&ceid=US:en"
+            
+        query = urllib.parse.quote(query_str)
+        url = f"https://news.google.com/rss/search?q={query}&{lang_params}"
         articles = []
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
@@ -204,8 +228,8 @@ Respond in JSON format with these exact fields:
     "severity": "one of: low, medium, high, critical",
     "relevance_score": 0-100 (how relevant to the entity),
     "confidence_score": 0-100 (confidence in classification),
-    "summary": "2-3 sentence risk summary",
-    "risk_impact": "brief description of potential compliance risk impact",
+    "summary": "2-3 sentence risk summary (If the article is in Arabic, provide the summary in Arabic)",
+    "risk_impact": "brief description of potential compliance risk impact (Language matching the summary)",
     "risk_score_impact": 0.0-2.0 (suggested risk score increase)
 }}"""
 

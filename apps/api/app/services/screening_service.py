@@ -5,6 +5,7 @@ Core entity resolution engine with multi-algorithm fuzzy matching
 import json
 from typing import List, Optional, Tuple
 from datetime import datetime, timezone
+import re
 from rapidfuzz import fuzz, process
 import jellyfish
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,11 +49,50 @@ class ScreeningService:
     NAME_PHONETIC = 0.15
 
     @staticmethod
-    def _normalize_name(name: str) -> str:
-        """Normalize name for comparison."""
+    def _normalize_arabic_name(name: str) -> str:
+        """
+        Normalize English transliterations of Arabic names for better fuzzy matching.
+        Maps variations like 'Mohamed', 'Mohammad', 'Mohd' to a common root.
+        """
         if not name:
             return ""
-        return " ".join(name.lower().strip().split())
+        
+        name = name.lower().strip()
+        
+        # 1. Strip common prefixes (al-, el-, abd, bin, bint, ibn)
+        name = re.sub(r'\b(al|el|ar|as|ad|ash|an)-?', '', name)
+        name = re.sub(r'\b(bin|bint|ibn)\b', '', name)
+        
+        # 2. Normalize "Abd Al" variations
+        name = re.sub(r'\babd(ul|allah|ullah|el|al| allah| ullah)?\b', 'abd', name)
+        
+        # 3. Standardize common names
+        name = re.sub(r'\b(mohamed|mohammed|muhammad|muhamed|mohammad|muhamad|mohd)\b', 'mohamed', name)
+        name = re.sub(r'\b(ahmed|ahmad|ahmadu)\b', 'ahmed', name)
+        name = re.sub(r'\b(mahmoud|mahmood|mahmud)\b', 'mahmoud', name)
+        name = re.sub(r'\b(hussein|hussain|husein|husain)\b', 'hussein', name)
+        name = re.sub(r'\b(hassan|hasan)\b', 'hassan', name)
+        name = re.sub(r'\b(khaled|khalid)\b', 'khaled', name)
+        name = re.sub(r'\b(yousef|yusuf|yosef)\b', 'yousef', name)
+        
+        # 4. Phonetic mapping for vowels and consonants
+        name = name.replace('ou', 'u').replace('oo', 'u')
+        name = name.replace('ee', 'i').replace('y', 'i')
+        name = name.replace('gh', 'g').replace('kh', 'k')
+        name = name.replace('ph', 'f')
+        
+        # 5. Remove double consonants (e.g. hassan -> hasan)
+        name = re.sub(r'([a-z])\1', r'\1', name)
+        
+        return " ".join(name.split())
+
+    @staticmethod
+    def _normalize_name(name: str) -> str:
+        """Normalize name for comparison, including Arabic transliteration."""
+        if not name:
+            return ""
+        name = " ".join(name.lower().strip().split())
+        return ScreeningService._normalize_arabic_name(name)
 
     @staticmethod
     def _name_similarity(name1: str, name2: str) -> float:
