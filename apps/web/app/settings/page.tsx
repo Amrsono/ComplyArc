@@ -7,19 +7,21 @@ import {
   Settings as SettingsIcon, Key, Users, Bell, Shield, 
   Globe, Database, Zap, Loader2, ShieldAlert 
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 const settingsSections = [
-  { icon: Globe, label: 'Organization', id: 'org' },
-  { icon: Key, label: 'API Keys', id: 'api' },
-  { icon: Shield, label: 'Risk Scoring', id: 'risk' },
-  { icon: Bell, label: 'Notifications', id: 'notif' },
-  { icon: Users, label: 'Team Members', id: 'team' },
-  { icon: Database, label: 'Data Sources', id: 'data' },
-  { icon: Zap, label: 'Integrations', id: 'integ' },
+  { icon: Globe, labelKey: 'settings.org', id: 'org' },
+  { icon: Key, labelKey: 'settings.apiKeys', id: 'api' },
+  { icon: Shield, labelKey: 'settings.risk', id: 'risk' },
+  { icon: Bell, labelKey: 'settings.notif', id: 'notif' },
+  { icon: Users, labelKey: 'settings.team', id: 'team' },
+  { icon: Database, labelKey: 'settings.data', id: 'data' },
+  { icon: Zap, labelKey: 'settings.integ', id: 'integ' },
 ];
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { t, language, setLanguage } = useTranslation();
   const { success, error: showError } = useToast();
   const [activeSection, setActiveSection] = useState('org');
 
@@ -120,8 +122,8 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="page-header animate-in">
-        <h2>Settings</h2>
-        <p>Platform configuration and administration</p>
+        <h2>{t('settings.title')}</h2>
+        <p>{t('settings.subtitle')}</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px' }}>
@@ -135,7 +137,7 @@ export default function SettingsPage() {
               style={{ cursor: 'pointer' }}
             >
               <item.icon className="nav-icon" size={18} />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </div>
           ))}
         </div>
@@ -146,6 +148,16 @@ export default function SettingsPage() {
             <div className="glass-card">
               <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>Organization Details</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="input-group">
+                  <label>{t('settings.language')}</label>
+                  <select className="input" value={language} onChange={e => setLanguage(e.target.value as any)}>
+                    <option value="en">English</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="pt">Português (Portuguese)</option>
+                  </select>
+                </div>
                 <div className="input-group">
                   <label>Organization Name</label>
                   <input className="input" value={orgForm.name} onChange={e => setOrgForm(f => ({ ...f, name: e.target.value }))} />

@@ -58,12 +58,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { I18nProvider } from '@/lib/i18n';
+
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AuthGate>{children}</AuthGate>
-      </ToastProvider>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AuthGate>{children}</AuthGate>
+        </ToastProvider>
+      </AuthProvider>
+    </I18nProvider>
   );
 }

@@ -9,27 +9,29 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import api from '@/lib/api';
+import { useTranslation } from '@/lib/i18n';
 
 const navItems = [
-  { section: 'Overview' },
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { section: 'Operations' },
-  { label: 'Screening', href: '/screening', icon: Search },
-  { label: 'Clients', href: '/clients', icon: Users },
-  { label: 'Cases', href: '/cases', icon: ShieldAlert, badgeKey: 'cases' },
-  { label: 'Alerts', href: '/alerts', icon: Bell, badgeKey: 'alerts' },
-  { section: 'Intelligence' },
-  { label: 'Adverse Media', href: '/adverse-media', icon: FileWarning },
-  { label: 'Risk Analytics', href: '/risk-analytics', icon: BarChart3 },
-  { section: 'Management' },
-  { label: 'Reports', href: '/reports', icon: FileText },
-  { label: 'Monitoring', href: '/monitoring', icon: Activity },
-  { label: 'Settings', href: '/settings', icon: Settings },
+  { sectionKey: 'nav.overview' },
+  { labelKey: 'nav.dashboard', href: '/', icon: LayoutDashboard },
+  { sectionKey: 'nav.operations' },
+  { labelKey: 'nav.screening', href: '/screening', icon: Search },
+  { labelKey: 'nav.clients', href: '/clients', icon: Users },
+  { labelKey: 'nav.cases', href: '/cases', icon: ShieldAlert, badgeKey: 'cases' },
+  { labelKey: 'nav.alerts', href: '/alerts', icon: Bell, badgeKey: 'alerts' },
+  { sectionKey: 'nav.intelligence' },
+  { labelKey: 'nav.adverseMedia', href: '/adverse-media', icon: FileWarning },
+  { labelKey: 'nav.riskAnalytics', href: '/risk-analytics', icon: BarChart3 },
+  { sectionKey: 'nav.management' },
+  { labelKey: 'nav.reports', href: '/reports', icon: FileText },
+  { labelKey: 'nav.monitoring', href: '/monitoring', icon: Activity },
+  { labelKey: 'nav.settings', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [badges, setBadges] = useState<Record<string, number>>({});
 
   // Fetch live badge counts
@@ -65,17 +67,17 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="sidebar-nav">
         {navItems.map((item, i) => {
-          if ('section' in item && !('label' in item)) {
+          if ('sectionKey' in item) {
             return (
               <div key={i} className="nav-section-label">
-                {item.section}
+                {t(item.sectionKey as string)}
               </div>
             );
           }
 
           if ('href' in item && 'icon' in item) {
             // Role-based visibility check for Settings
-            if (item.label === 'Settings' && user?.role !== 'admin') {
+            if (item.labelKey === 'nav.settings' && user?.role !== 'admin') {
               return null;
             }
 
@@ -89,10 +91,10 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href!}
                 className={`nav-item ${isActive ? 'active' : ''}`}
-                id={`nav-${item.label?.toLowerCase().replace(/\s+/g, '-')}`}
+                id={`nav-${item.labelKey?.replace('nav.', '')}`}
               >
                 <Icon className="nav-icon" size={20} />
-                <span>{item.label}</span>
+                <span>{t(item.labelKey as string)}</span>
                 {badgeCount !== undefined && badgeCount > 0 && (
                   <span className="nav-badge">{badgeCount > 99 ? '99+' : badgeCount}</span>
                 )}
@@ -138,7 +140,7 @@ export function Sidebar() {
             background: 'var(--status-active)',
             boxShadow: '0 0 6px var(--status-active)',
           }} />
-          System Operational
+          {t('nav.systemOperational')}
         </div>
         <div style={{ marginTop: '4px', opacity: 0.6 }}>v1.0.0 — Enterprise</div>
       </div>

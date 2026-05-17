@@ -51,6 +51,13 @@ class SanctionsIngestor:
         except Exception as e:
             logger.error(f"PEP seeding failed: {e}")
             stats["PEP"] = f"Error: {str(e)}"
+            
+        try:
+            mena_count = await self.seed_mena_watchlists(db)
+            stats["MENA_LOCAL"] = mena_count
+        except Exception as e:
+            logger.error(f"MENA watchlist seeding failed: {e}")
+            stats["MENA_LOCAL"] = f"Error: {str(e)}"
 
         return stats
 
@@ -353,6 +360,35 @@ class SanctionsIngestor:
         except Exception as e:
             logger.error(f"Failed to ingest PEPs: {e}")
             return 0
+
+    async def seed_mena_watchlists(self, db: AsyncSession) -> int:
+        """Seed simulated local MENA watchlists (UAE Local Terrorist List, Saudi PSS)."""
+        logger.info("Seeding local MENA watchlists...")
+
+        await db.execute(
+            delete(SanctionsEntry).where(SanctionsEntry.list_type == "MENA_LOCAL")
+        )
+
+        mena_targets = [
+            {"name": "Ahmad Abdullah Al-Shamsi", "country": "AE", "program": "UAE Local Terrorist List"},
+            {"name": "Khalid Mohammed Al-Qahtani", "country": "SA", "program": "Saudi Presidency of State Security (PSS)"},
+            {"name": "Tariq Abdulrahman", "country": "EG", "program": "Egyptian Terrorist Entities List"},
+            {"name": "Yousef Hassan Ali", "country": "SA", "program": "Saudi Presidency of State Security (PSS)"},
+            {"name": "Omar Mahmoud El-Sayed", "country": "AE", "program": "UAE Local Terrorist List"}
+        ]
+
+        for target in mena_targets:
+            db.add(SanctionsEntry(
+                list_type="MENA_LOCAL",
+                entity_type="individual",
+                full_name=target["name"],
+                country=target["country"],
+                program=target["program"],
+                is_active=True,
+            ))
+            
+        await db.flush()
+        return len(mena_targets)
 
 
 # Singleton
