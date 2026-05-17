@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { 
@@ -42,6 +42,9 @@ export default function SettingsPage() {
   }
 
   const [saving, setSaving] = useState(false);
+  const [loadingIntegrations, setLoadingIntegrations] = useState(false);
+  const [systemSettings, setSystemSettings] = useState<any[]>([]);
+  const [apiFormValues, setApiFormValues] = useState<Record<string, string>>({});
   const [orgForm, setOrgForm] = useState({ name: 'ComplyArc Enterprise', industry: 'Financial Services', email: 'compliance@company.com', jurisdiction: 'United Arab Emirates' });
   const [riskForm, setRiskForm] = useState({ highThreshold: '4.0', medThreshold: '2.5', highConfidence: '85', medConfidence: '70' });
   const [apiKeys, setApiKeys] = useState([
@@ -55,6 +58,47 @@ export default function SettingsPage() {
       // Simulate API save
       await new Promise(r => setTimeout(r, 800));
       success(`${section} settings saved`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSection === 'integ') {
+      loadSystemSettings();
+    }
+  }, [activeSection]);
+
+  const loadSystemSettings = async () => {
+    try {
+      setLoadingIntegrations(true);
+      const { api } = await import('@/lib/api');
+      const settings = await api.getSystemSettings();
+      setSystemSettings(settings);
+      
+      const formValues: Record<string, string> = {};
+      settings.forEach((s: any) => {
+        formValues[s.key] = s.value || '';
+      });
+      setApiFormValues(formValues);
+    } catch (err: any) {
+      console.error('Failed to load system settings', err);
+      showError('Failed to load integrations settings');
+    } finally {
+      setLoadingIntegrations(false);
+    }
+  };
+
+  const handleSaveIntegration = async (key: string) => {
+    setSaving(true);
+    try {
+      const { api } = await import('@/lib/api');
+      await api.updateSystemSetting(key, apiFormValues[key]);
+      success('Integration setting updated');
+      loadSystemSettings(); // reload to get the masked value back
+    } catch (err: any) {
+      console.error('Failed to update integration', err);
+      showError('Failed to update integration');
     } finally {
       setSaving(false);
     }
@@ -221,15 +265,66 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {(activeSection === 'team' || activeSection === 'integ') && (
+          {activeSection === 'team' && (
             <div className="glass-card" style={{ textAlign: 'center', padding: '60px' }}>
               <SettingsIcon size={40} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
               <h3 style={{ fontWeight: 600, marginBottom: '8px' }}>
-                {activeSection === 'team' ? 'Team Management' : 'Integrations'}
+                Team Management
               </h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
                 This section will be available in a future update. Contact support for early access.
               </p>
+            </div>
+          )}
+
+          {activeSection === 'integ' && (
+            <div className="glass-card">
+              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>System Integrations</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px' }}>
+                Manage API keys and connections for external services powering ComplyArc.
+              </p>
+              
+              {loadingIntegrations ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', margin: '0 auto', color: 'var(--accent-primary)' }} />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {systemSettings.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No integrations configured.</p>
+                  ) : (
+                    systemSettings.map(setting => (
+                      <div key={setting.key} style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                        <h4 style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
+                          {setting.key === 'news_api_key' ? 'News API' : 
+                           setting.key === 'openai_api_key' ? 'OpenAI API' : setting.key}
+                        </h4>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                          {setting.description || 'System setting for ' + setting.key}
+                        </p>
+                        
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <input 
+                            type={setting.is_secret && apiFormValues[setting.key] === '********' ? 'password' : 'text'}
+                            className="input" 
+                            style={{ flex: 1, fontFamily: 'monospace', fontSize: '13px' }}
+                            value={apiFormValues[setting.key] || ''} 
+                            placeholder={setting.is_secret ? 'Enter new secret key...' : 'Enter value...'}
+                            onChange={e => setApiFormValues({ ...apiFormValues, [setting.key]: e.target.value })} 
+                          />
+                          <button 
+                            className="btn btn-primary" 
+                            onClick={() => handleSaveIntegration(setting.key)} 
+                            disabled={saving}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           )}
 

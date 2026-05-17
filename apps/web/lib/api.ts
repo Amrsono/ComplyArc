@@ -300,6 +300,15 @@ class ApiClient {
   async ingestSanctions() {
     return this.request<any>('/admin/ingest-sanctions', { method: 'POST' });
   }
+
+  // ——— Settings —————————————————————
+  async getSystemSettings() {
+    return this.request<any>('/settings');
+  }
+
+  async updateSystemSetting(key: string, value: string) {
+    return this.request<any>(`/settings/${key}`, { method: 'PUT', body: { value } });
+  }
 }
 
 export const api = new ApiClient(API_URL);

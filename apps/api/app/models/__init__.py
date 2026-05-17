@@ -12,8 +12,8 @@ from app.models.case import Case, CaseNote
 from app.models.audit_log import AuditLog
 from app.models.sanctions_entry import SanctionsEntry
 from app.models.monitoring import Monitoring
-
 from app.models.report import Report
+from app.models.system_settings import SystemSettings
 
 __all__ = [
     "User",
@@ -29,4 +29,5 @@ __all__ = [
     "SanctionsEntry",
     "Monitoring",
     "Report",
+    "SystemSettings",
 ]

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.adverse_media import AdverseMedia
+from app.models.system_settings import SystemSettings
 from app.core.config import settings
 from app.schemas.media import MediaSearchRequest, MediaSearchResponse, MediaHitResponse
 
@@ -41,7 +42,17 @@ class AdverseMediaService:
         request: MediaSearchRequest,
     ) -> MediaSearchResponse:
         """Search for adverse media about an entity and classify using AI."""
-        articles = await self._fetch_news(request.entity_name)
+        # Fetch API keys from DB settings, fallback to env vars
+        result = await db.execute(
+            select(SystemSettings).where(SystemSettings.key.in_(["news_api_key", "openai_api_key"]))
+        )
+        db_settings = {s.key: s.value for s in result.scalars().all()}
+        
+        # If DB value is empty or not present, fallback to settings
+        news_api_key = db_settings.get("news_api_key") or settings.NEWS_API_KEY
+        openai_api_key = db_settings.get("openai_api_key") or settings.OPENAI_API_KEY
+
+        articles = await self._fetch_news(request.entity_name, news_api_key)
 
         results: List[MediaHitResponse] = []
         high_severity_count = 0
@@ -49,7 +60,7 @@ class AdverseMediaService:
         for article in articles:
             # Classify with AI
             classification = await self._classify_article(
-                request.entity_name, article
+                request.entity_name, article, openai_api_key
             )
 
             media_entry = AdverseMedia(
@@ -93,9 +104,9 @@ class AdverseMediaService:
 
         # Generate overall summary if we have results
         overall_summary = None
-        if results and settings.OPENAI_API_KEY:
+        if results and openai_api_key:
             overall_summary = await self._generate_overall_summary(
-                request.entity_name, results
+                request.entity_name, results, openai_api_key
             )
 
         return MediaSearchResponse(
@@ -106,9 +117,9 @@ class AdverseMediaService:
             ai_overall_summary=overall_summary,
         )
 
-    async def _fetch_news(self, entity_name: str) -> List[dict]:
+    async def _fetch_news(self, entity_name: str, news_api_key: str = None) -> List[dict]:
         """Fetch news articles about an entity from news API or RSS fallback."""
-        if not settings.NEWS_API_KEY:
+        if not news_api_key:
             # Fallback to Google News RSS for real data if no API key is configured
             return await self._get_google_news_rss(entity_name)
 
@@ -121,7 +132,7 @@ class AdverseMediaService:
                         "language": "en",
                         "sortBy": "relevancy",
                         "pageSize": 10,
-                        "apiKey": settings.NEWS_API_KEY,
+                        "apiKey": news_api_key,
                     },
                 )
                 if response.status_code == 200:
@@ -172,14 +183,14 @@ class AdverseMediaService:
 
         return articles
 
-    async def _classify_article(self, entity_name: str, article: dict) -> dict:
+    async def _classify_article(self, entity_name: str, article: dict, openai_api_key: str = None) -> dict:
         """Use LLM to classify an article's risk category and severity."""
-        if not settings.OPENAI_API_KEY:
+        if not openai_api_key:
             return self._heuristic_classification(article)
 
         try:
             from openai import AsyncOpenAI
-            client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            client = AsyncOpenAI(api_key=openai_api_key)
 
             prompt = f"""Analyze this news article for AML/compliance risk regarding the entity "{entity_name}".
 
@@ -252,12 +263,12 @@ Respond in JSON format with these exact fields:
         }
 
     async def _generate_overall_summary(
-        self, entity_name: str, results: List[MediaHitResponse]
+        self, entity_name: str, results: List[MediaHitResponse], openai_api_key: str = None
     ) -> Optional[str]:
         """Generate an overall adverse media summary using LLM."""
         try:
             from openai import AsyncOpenAI
-            client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            client = AsyncOpenAI(api_key=openai_api_key)
 
             articles_text = "\n".join([
                 f"- [{r.category}] {r.title} (Severity: {r.severity}, Relevance: {r.relevance_score}%)"

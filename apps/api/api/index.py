@@ -138,6 +138,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.alerts import router as alerts_router
 from app.api.monitoring_routes import router as monitoring_router
 from app.api.reports import router as reports_router
+from app.api.settings import router as settings_router
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(screening_router, prefix="/api/v1")
@@ -149,6 +150,7 @@ app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(monitoring_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
+app.include_router(settings_router, prefix="/api/v1/settings", tags=["Settings"])
 
 
 # ——— Catch-all for 404 Diagnostics ————————————————
