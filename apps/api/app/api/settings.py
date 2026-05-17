@@ -1,18 +1,21 @@
 """
-ComplyArc â€” Settings API Routes
+ComplyArc — Settings API Routes
 """
-from typing import List, Dict, Any
+import logging
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from pydantic import BaseModel
 
 from app.db.base import get_db
 from app.models.user import User
-from app.models.system_settings import SystemSettings
 from app.core.deps import get_current_user
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# ── Schemas ──────────────────────────────────────────────────────────────────
 
 class SettingUpdate(BaseModel):
     value: str
@@ -21,10 +24,54 @@ class SettingResponse(BaseModel):
     key: str
     value: str | None = None
     description: str | None = None
-    is_secret: bool
+    is_secret: bool = True
 
     class Config:
         orm_mode = True
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _env_defaults():
+    """Return default setting definitions sourced from env vars."""
+    from app.core.config import settings as cfg
+    return {
+        "news_api_key": {
+            "description": "News API Key for Adverse Media Search",
+            "value": cfg.NEWS_API_KEY or "",
+            "is_secret": True,
+        },
+        "openai_api_key": {
+            "description": "OpenAI API Key for AI Analysis",
+            "value": cfg.OPENAI_API_KEY or "",
+            "is_secret": True,
+        },
+    }
+
+def _mask(value: str | None, is_secret: bool) -> str | None:
+    if is_secret and value:
+        return "********"
+    return value
+
+async def _ensure_table(db: AsyncSession):
+    """Create system_settings table if it does not exist."""
+    try:
+        await db.execute(text(
+            """
+            CREATE TABLE IF NOT EXISTS system_settings (
+                key VARCHAR(100) PRIMARY KEY,
+                value TEXT,
+                description TEXT,
+                is_secret BOOLEAN DEFAULT TRUE,
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+            """
+        ))
+        await db.commit()
+    except Exception as e:
+        logger.warning(f"Could not ensure system_settings table: {e}")
+        await db.rollback()
+
+# ── GET /settings/ ────────────────────────────────────────────────────────────
 
 @router.get("/", response_model=List[SettingResponse])
 async def get_settings(
@@ -34,61 +81,73 @@ async def get_settings(
     """Get all system settings (admin only). Secrets are masked."""
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-    
-    from app.core.config import settings as app_settings
 
-    defaults = {
-        "news_api_key": ("News API Key for Adverse Media Search", app_settings.NEWS_API_KEY),
-        "openai_api_key": ("OpenAI API Key for AI Analysis", app_settings.OPENAI_API_KEY),
-    }
+    defaults = _env_defaults()
 
-    async def _load_and_seed(session: AsyncSession):
-        result = await session.execute(select(SystemSettings))
-        settings_records = list(result.scalars().all())
+    # ── Step 1: ensure table exists ─────────────────────────────────────────
+    await _ensure_table(db)
 
-        existing_keys = {s.key: s for s in settings_records}
-        for k, (desc, env_val) in defaults.items():
-            if k not in existing_keys:
-                new_setting = SystemSettings(key=k, value=env_val, description=desc, is_secret=True)
-                session.add(new_setting)
-                settings_records.append(new_setting)
-            else:
-                setting = existing_keys[k]
-                if not setting.value and env_val:
-                    setting.value = env_val
-
-        await session.commit()
-        return settings_records
-
+    # ── Step 2: load rows from DB ────────────────────────────────────────────
+    db_rows: dict[str, dict] = {}
     try:
-        settings_records = await _load_and_seed(db)
+        rows = await db.execute(text("SELECT key, value, description, is_secret FROM system_settings"))
+        for row in rows.mappings():
+            db_rows[row["key"]] = dict(row)
     except Exception as e:
-        err_str = str(e).lower()
-        # Table missing — create it then retry with a fresh session
-        if "does not exist" in err_str or "no such table" in err_str or "undefined" in err_str:
-            import logging
-            logging.getLogger(__name__).warning("system_settings table missing — creating now...")
-            from app.db.init_db import create_tables
-            await create_tables()
-            # Retry with a fresh session
-            from app.db.base import async_session_factory
-            async with async_session_factory() as fresh_db:
-                settings_records = await _load_and_seed(fresh_db)
-        else:
-            raise HTTPException(status_code=500, detail=f"Failed to load settings: {str(e)}")
+        logger.error(f"Failed to read system_settings from DB: {e}")
+        # Non-fatal — fall through and use env defaults only
 
-    # Mask secrets
+    # ── Step 3: upsert defaults if missing ───────────────────────────────────
+    for key, meta in defaults.items():
+        if key not in db_rows:
+            try:
+                await db.execute(
+                    text(
+                        """
+                        INSERT INTO system_settings (key, value, description, is_secret)
+                        VALUES (:key, :value, :description, :is_secret)
+                        ON CONFLICT (key) DO NOTHING
+                        """
+                    ),
+                    {"key": key, "value": meta["value"], "description": meta["description"], "is_secret": meta["is_secret"]},
+                )
+                await db.commit()
+                db_rows[key] = {"key": key, **meta}
+            except Exception as e:
+                logger.warning(f"Could not upsert default setting {key}: {e}")
+                await db.rollback()
+                # Still add it to the response from env defaults
+                db_rows[key] = {"key": key, **meta}
+        else:
+            # Backfill empty value from env var
+            row = db_rows[key]
+            if not row.get("value") and meta["value"]:
+                try:
+                    await db.execute(
+                        text("UPDATE system_settings SET value = :val WHERE key = :key"),
+                        {"val": meta["value"], "key": key},
+                    )
+                    await db.commit()
+                    db_rows[key]["value"] = meta["value"]
+                except Exception as e:
+                    logger.warning(f"Could not backfill {key}: {e}")
+                    await db.rollback()
+
+    # ── Step 4: build response (always includes all defaults) ────────────────
     response = []
-    for s in settings_records:
-        masked_val = "********" if s.is_secret and s.value else s.value
+    for key, meta in defaults.items():
+        row = db_rows.get(key, {"key": key, **meta})
         response.append(SettingResponse(
-            key=s.key,
-            value=masked_val,
-            description=s.description,
-            is_secret=s.is_secret
+            key=key,
+            value=_mask(row.get("value"), bool(row.get("is_secret", True))),
+            description=row.get("description") or meta["description"],
+            is_secret=bool(row.get("is_secret", True)),
         ))
-        
+
     return response
+
+
+# ── PUT /settings/{key} ───────────────────────────────────────────────────────
 
 @router.put("/{key}", response_model=SettingResponse)
 async def update_setting(
@@ -97,29 +156,43 @@ async def update_setting(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Update a specific system setting."""
+    """Update a specific system setting (admin only)."""
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-        
-    result = await db.execute(select(SystemSettings).where(SystemSettings.key == key))
-    setting = result.scalar_one_or_none()
-    
-    if not setting:
-        # Create it if it doesn't exist
-        setting = SystemSettings(key=key, value=setting_update.value, is_secret=True)
-        db.add(setting)
-    else:
-        # Only update if the value is not the masked string
-        if setting_update.value != "********":
-            setting.value = setting_update.value
-            
-    await db.commit()
-    await db.refresh(setting)
-    
-    masked_val = "********" if setting.is_secret and setting.value else setting.value
+
+    if not setting_update.value or setting_update.value == "********":
+        raise HTTPException(status_code=400, detail="Invalid value — cannot save empty or masked key.")
+
+    await _ensure_table(db)
+
+    defaults = _env_defaults()
+    meta = defaults.get(key, {"description": f"System setting: {key}", "is_secret": True})
+
+    try:
+        await db.execute(
+            text(
+                """
+                INSERT INTO system_settings (key, value, description, is_secret)
+                VALUES (:key, :value, :description, :is_secret)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+                """
+            ),
+            {
+                "key": key,
+                "value": setting_update.value,
+                "description": meta["description"],
+                "is_secret": True,
+            },
+        )
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Failed to update setting {key}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save setting: {str(e)}")
+
     return SettingResponse(
-        key=setting.key,
-        value=masked_val,
-        description=setting.description,
-        is_secret=setting.is_secret
+        key=key,
+        value="********",
+        description=meta["description"],
+        is_secret=True,
     )
