@@ -102,8 +102,8 @@ async def get_settings(
             for key in env_values:
                 if key not in db_rows:
                     await db.execute(text("""
-                        INSERT INTO system_settings (key, value, description, is_secret)
-                        VALUES (:key, :value, :desc, TRUE)
+                        INSERT INTO system_settings (key, value, description, is_secret, updated_at)
+                        VALUES (:key, :value, :desc, TRUE, NOW())
                         ON CONFLICT (key) DO NOTHING
                     """), {"key": key, "value": env_values[key], "desc": descriptions[key]})
                     db_rows[key] = {
@@ -116,7 +116,7 @@ async def get_settings(
                     # Backfill from env if DB value is empty
                     if not db_rows[key].get("value") and env_values[key]:
                         await db.execute(text(
-                            "UPDATE system_settings SET value = :val WHERE key = :key"
+                            "UPDATE system_settings SET value = :val, updated_at = NOW() WHERE key = :key"
                         ), {"val": env_values[key], "key": key})
                         db_rows[key]["value"] = env_values[key]
 
@@ -183,8 +183,8 @@ async def update_setting(
                 )
             """))
             await db.execute(text("""
-                INSERT INTO system_settings (key, value, description, is_secret)
-                VALUES (:key, :value, :desc, TRUE)
+                INSERT INTO system_settings (key, value, description, is_secret, updated_at)
+                VALUES (:key, :value, :desc, TRUE, NOW())
                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
             """), {"key": key, "value": setting_update.value.strip(), "desc": desc})
             await db.commit()
