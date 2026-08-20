@@ -1,0 +1,59 @@
+<?xml version="1.0" standalone="yes"?>
+<sdnList xmlns="http://tempuri.org/sdnList.xsd">
+  <publshInformation>
+    <Publish_Date>08/20/2026</Publish_Date>
+    <Record_Count>2</Record_Count>
+  </publshInformation>
+  <sdnEntry>
+    <uid>1001</uid>
+    <firstName>Vladimir</firstName>
+    <lastName>Putin</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>RUSSIA-EO14024</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>100101</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>Putin</lastName>
+        <firstName>Vladimir Vladimirovich</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>100102</uid>
+        <country>Russia</country>
+      </address>
+    </addressList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>100103</uid>
+        <dateOfBirth>1952-10-07</dateOfBirth>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>1002</uid>
+    <lastName>Cyber Threat Network LLC</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>CYBER-SANCTIONS</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>100201</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CTN Global</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>100202</uid>
+        <country>North Korea</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+</sdnList>

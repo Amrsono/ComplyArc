@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONSOLIDATED_LIST xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <INDIVIDUALS>
+    <INDIVIDUAL>
+      <DATAID>2001</DATAID>
+      <FIRST_NAME>Mohamed</FIRST_NAME>
+      <SECOND_NAME>Al-Mansoor</SECOND_NAME>
+      <UN_LIST_TYPE>UN-TERRORISM</UN_LIST_TYPE>
+      <LISTED_ON>2020-05-15</LISTED_ON>
+      <NATIONALITY>
+        <VALUE>Syria</VALUE>
+      </NATIONALITY>
+      <INDIVIDUAL_DATE_OF_BIRTH>
+        <DATE>1980-05-15</DATE>
+      </INDIVIDUAL_DATE_OF_BIRTH>
+      <INDIVIDUAL_ALIAS>
+        <ALIAS_NAME>Mohammed Mansour</ALIAS_NAME>
+      </INDIVIDUAL_ALIAS>
+    </INDIVIDUAL>
+  </INDIVIDUALS>
+  <ENTITIES>
+    <ENTITY>
+      <DATAID>2002</DATAID>
+      <FIRST_NAME>Al-Baraka Trading Ltd</FIRST_NAME>
+      <UN_LIST_TYPE>UN-SANCTIONS</UN_LIST_TYPE>
+      <LISTED_ON>2022-01-10</LISTED_ON>
+      <ENTITY_ALIAS>
+        <ALIAS_NAME>Baraka Global Co</ALIAS_NAME>
+      </ENTITY_ALIAS>
+    </ENTITY>
+  </ENTITIES>
+</CONSOLIDATED_LIST>

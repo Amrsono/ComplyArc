@@ -255,18 +255,19 @@ Respond in JSON format with these exact fields:
 
     def _heuristic_classification(self, article: dict) -> dict:
         """Fallback heuristic classification for real news when LLM is unavailable."""
-        title = (article.get("title") or "").lower()
-        if any(w in title for w in ["fraud", "irregularities", "misappropriation"]):
+        text = f"{article.get('title', '')} {article.get('description', '')}".lower()
+        if any(w in text for w in ["fraud", "irregularities", "misappropriation", "money laundering", "laundering", "indicted", "bribe", "terror"]):
+            category = "money_laundering" if "laundering" in text else ("fraud" if "fraud" in text else "corruption")
             return {
-                "category": "fraud",
+                "category": category,
                 "severity": "high",
-                "relevance_score": 75.0,
-                "confidence_score": 65.0,
-                "summary": "Article discusses potential financial fraud or irregularities. Requires further compliance review.",
-                "risk_impact": "Potential fraud association may increase client risk score",
-                "risk_score_impact": 1.0,
+                "relevance_score": 85.0,
+                "confidence_score": 75.0,
+                "summary": "Article discusses potential financial crime, money laundering, or fraud. Requires compliance review.",
+                "risk_impact": "Severe direct compliance risk requiring enhanced due diligence review",
+                "risk_score_impact": 1.5,
             }
-        elif any(w in title for w in ["regulatory", "scrutiny", "investigation"]):
+        elif any(w in text for w in ["regulatory", "scrutiny", "investigation", "inquiry", "probe"]):
             return {
                 "category": "corruption",
                 "severity": "medium",

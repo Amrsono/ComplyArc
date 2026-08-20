@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "totalResults": 2,
+  "articles": [
+    {
+      "source": { "id": "financial-times", "name": "Financial Times" },
+      "author": "Regulatory Correspondent",
+      "title": "Global Trade Corp Indicted in Federal Court for Multi-Million Dollar Money Laundering Scheme",
+      "description": "Prosecutors unveiled criminal charges against Global Trade Corp for illicit trade routing and fraudulent shell banking transactions.",
+      "url": "https://example.com/ft/global-trade-corp-indicted",
+      "urlToImage": "https://example.com/images/ft-header.jpg",
+      "publishedAt": "2026-06-12T14:30:00Z",
+      "content": "Full criminal investigation details announced today by the Department of Justice."
+    },
+    {
+      "source": { "id": "reuters", "name": "Reuters" },
+      "author": "Banking Desk",
+      "title": "Compliance Regulators Issue Formal Scrutiny Notice to Energy Broker",
+      "description": "Authorities opened a compliance inquiry into suspicious cross-border wire transfers.",
+      "url": "https://example.com/reuters/compliance-scrutiny-notice",
+      "urlToImage": null,
+      "publishedAt": "2026-07-01T09:15:00Z",
+      "content": "Regulatory scrutiny follows an audit of cross-border financial transactions."
+    }
+  ]
+}
