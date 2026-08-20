@@ -44,6 +44,19 @@ describe('ApiKeysSettings Component Tests', () => {
     expect(screen.getByText('● NOT SET')).toBeInTheDocument();
   });
 
+  it('should handle empty settings and error states gracefully', async () => {
+    vi.mocked(api.getSystemSettings).mockResolvedValue([]);
+
+    render(
+      <ToastProvider>
+        <ApiKeysSettings />
+      </ToastProvider>
+    );
+
+    expect(await screen.findByText('Service API Keys')).toBeInTheDocument();
+    expect(screen.getByText('No API keys configured.')).toBeInTheDocument();
+  });
+
   it('should allow editing an API key and submit update to api.updateSystemSetting', async () => {
     vi.mocked(api.getSystemSettings).mockResolvedValue([
       {
@@ -75,5 +88,29 @@ describe('ApiKeysSettings Component Tests', () => {
     await waitFor(() => {
       expect(api.updateSystemSetting).toHaveBeenCalledWith('news_api_key', 'sk_new_secret_key_12345');
     });
+  });
+
+  it('should handle cancel edit mode when clicking cancel', async () => {
+    vi.mocked(api.getSystemSettings).mockResolvedValue([
+      {
+        key: 'news_api_key',
+        value: 'sk_test_key_123',
+        description: 'News API',
+      },
+    ]);
+
+    render(
+      <ToastProvider>
+        <ApiKeysSettings />
+      </ToastProvider>
+    );
+
+    const editBtn = await screen.findByRole('button', { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    expect(screen.queryByPlaceholderText(/Paste new API key here/i)).not.toBeInTheDocument();
   });
 });

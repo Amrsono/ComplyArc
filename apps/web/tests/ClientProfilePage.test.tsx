@@ -81,6 +81,17 @@ describe('ClientProfilePage Component Tests', () => {
     });
   });
 
+  it('should render empty state when client is not found', async () => {
+    vi.mocked(api.getClient).mockResolvedValue(null as any);
+    vi.mocked(api.getUBOs).mockResolvedValue([]);
+    vi.mocked(api.getClientRisk).mockRejectedValue(new Error('Not found'));
+
+    render(<ClientProfilePage />);
+
+    expect(await screen.findByText('Client not found')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Back to Clients/i })).toBeInTheDocument();
+  });
+
   it('should calculate risk score on button click', async () => {
     vi.mocked(api.calculateRisk).mockResolvedValue({
       client_id: 'client-999',
