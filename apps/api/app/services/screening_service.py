@@ -17,32 +17,22 @@ from app.models.client import Client
 from app.schemas.screening import (
     ScreenRequest, ScreenResponse, MatchDetail, BatchScreenRequest, BatchScreenResponse,
 )
+from app.services.name_normalization import normalize_arabic_name, normalize_name
 
 
 class ScreeningService:
     """
-    Entity resolution engine â€” the heart of ComplyArc.
-    
-    Matching Algorithm:
-    â”œâ”€â”€ Name Similarity (60% weight)
-    â”‚   â”œâ”€â”€ Jaro-Winkler (best for names)
-    â”‚   â”œâ”€â”€ Token Sort Ratio (handles name reordering)
-    â”‚   â”œâ”€â”€ Partial Ratio (handles partial matches)
-    â”‚   â””â”€â”€ Phonetic (Soundex/Metaphone)
-    â”œâ”€â”€ DOB Match (15% weight)
-    â”œâ”€â”€ Nationality Match (10% weight)
-    â”œâ”€â”€ ID Number Match (10% weight)
-    â””â”€â”€ Address Similarity (5% weight)
+    Entity resolution engine — the heart of ComplyArc.
     """
 
-    # â”€â”€â”€ Weights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── Weights ───────────────────────────────────────
     WEIGHT_NAME = 0.60
     WEIGHT_DOB = 0.15
     WEIGHT_NATIONALITY = 0.10
     WEIGHT_ID = 0.10
     WEIGHT_ADDRESS = 0.05
 
-    # â”€â”€â”€ Name Sub-Weights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── Name Sub-Weights ───────────────────────────────
     NAME_JARO_WINKLER = 0.35
     NAME_TOKEN_SORT = 0.30
     NAME_PARTIAL = 0.20
@@ -50,49 +40,11 @@ class ScreeningService:
 
     @staticmethod
     def _normalize_arabic_name(name: str) -> str:
-        """
-        Normalize English transliterations of Arabic names for better fuzzy matching.
-        Maps variations like 'Mohamed', 'Mohammad', 'Mohd' to a common root.
-        """
-        if not name:
-            return ""
-        
-        name = name.lower().strip()
-        
-        # 1. Strip common prefixes (al-, el-, abd, bin, bint, ibn)
-        name = re.sub(r'\b(al|el|ar|as|ad|ash|an)-?', '', name)
-        name = re.sub(r'\b(bin|bint|ibn)\b', '', name)
-        
-        # 2. Normalize "Abd Al" variations
-        name = re.sub(r'\babd(ul|allah|ullah|el|al| allah| ullah)?\b', 'abd', name)
-        
-        # 3. Standardize common names
-        name = re.sub(r'\b(mohamed|mohammed|muhammad|muhamed|mohammad|muhamad|mohd)\b', 'mohamed', name)
-        name = re.sub(r'\b(ahmed|ahmad|ahmadu)\b', 'ahmed', name)
-        name = re.sub(r'\b(mahmoud|mahmood|mahmud)\b', 'mahmoud', name)
-        name = re.sub(r'\b(hussein|hussain|husein|husain)\b', 'hussein', name)
-        name = re.sub(r'\b(hassan|hasan)\b', 'hassan', name)
-        name = re.sub(r'\b(khaled|khalid)\b', 'khaled', name)
-        name = re.sub(r'\b(yousef|yusuf|yosef)\b', 'yousef', name)
-        
-        # 4. Phonetic mapping for vowels and consonants
-        name = name.replace('ou', 'u').replace('oo', 'u')
-        name = name.replace('ee', 'i').replace('y', 'i')
-        name = name.replace('gh', 'g').replace('kh', 'k')
-        name = name.replace('ph', 'f')
-        
-        # 5. Remove double consonants (e.g. hassan -> hasan)
-        name = re.sub(r'([a-z])\1', r'\1', name)
-        
-        return " ".join(name.split())
+        return normalize_arabic_name(name)
 
     @staticmethod
     def _normalize_name(name: str) -> str:
-        """Normalize name for comparison, including Arabic transliteration."""
-        if not name:
-            return ""
-        name = " ".join(name.lower().strip().split())
-        return ScreeningService._normalize_arabic_name(name)
+        return normalize_name(name)
 
     @staticmethod
     def _name_similarity(name1: str, name2: str) -> float:
