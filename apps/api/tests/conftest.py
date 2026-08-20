@@ -187,6 +187,23 @@ async def seed_sanctions(db_session: AsyncSession):
     await db_session.commit()
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def mock_external_network(monkeypatch):
+    """Ensure zero real external HTTP calls are made during tests."""
+    from unittest.mock import AsyncMock
+
+    async def mock_async_get(*args, **kwargs):
+        mock_resp = AsyncMock()
+        mock_resp.status_code = 200
+        mock_resp.text = "<xml></xml>"
+        mock_resp.json = AsyncMock(return_value={"status": "ok", "articles": []})
+        mock_resp.raise_for_status = AsyncMock()
+        return mock_resp
+
+    monkeypatch.setattr("httpx.AsyncClient.get", mock_async_get)
+    monkeypatch.setattr("httpx.AsyncClient.post", mock_async_get)
+
+
 @pytest_asyncio.fixture
 async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     """Provide an HTTPX AsyncClient with dependency overrides for FastAPI."""
@@ -200,3 +217,4 @@ async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, 
         yield client
 
     app.dependency_overrides.clear()
+
