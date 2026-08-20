@@ -51,6 +51,12 @@ services:
       DEBUG: "false"
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,7 +64,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # â”€â”€â”€ Next.js Frontend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ─── Next.js Frontend ──────────────────────────────
   web:
     build:
       context: ./apps/web
@@ -69,7 +75,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
   # â”€â”€â”€ Celery Worker (Background Tasks) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
