@@ -4,9 +4,9 @@
   "private": true,
   "description": "ComplyArc — AI-Native AML & eKYC Operating System",
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
+    "dev": "npm run dev --workspace=@complyarc/web",
+    "build": "npm run build --workspace=@complyarc/web",
+    "lint": "npm run lint --workspace=@complyarc/web",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:web": "npm run test --workspace=@complyarc/web",
@@ -14,7 +14,7 @@
     "test:all": "npm run test:web && npm run test:api",
     "dev:web": "npm run dev --workspace=@complyarc/web",
     "dev:api": "cd apps/api && uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
-    "build:web": "turbo run build --filter=@complyarc/web",
+    "build:web": "npm run build --workspace=@complyarc/web",
     "db:migrate": "cd apps/api && alembic upgrade head",
     "db:revision": "cd apps/api && alembic revision --autogenerate"
   },

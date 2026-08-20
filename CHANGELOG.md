@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-08-20
+
+### Added
+- **Core Security & Auth Unit Tests**: Added unit tests for password hashing, JWT expiration, API key hashing, and RBAC enforcement (`test_core_security.py`, `test_core_deps.py`).
+- **Frontend Edge-Case Component Tests**: Added empty states, not-found fallbacks, and error boundaries for `ApiKeysSettings` and `ClientProfilePage`.
+- **Root Dockerfile & Container Healthchecks**: Added multi-stage root container build and automated container healthcheck on `/api/health`.
+- **Strict CI Security Audits**: Hardened `.github/workflows/ci.yml` to strictly enforce zero critical audit findings without silent pass-through.
+- **Dependency Lockfiles**: Created `requirements.in` and `requirements.lock.txt` for exact reproducible backend installs.
+
+### Changed
+- **Raised Test Coverage Gates**: Increased backend `--cov-fail-under` gate from 65% to **75%** (achieved 80.22%) and Vitest frontend line thresholds to **70%** (achieved 72.04%).
+- **Error Tracking Telemetry**: Added Sentry browser SDK client in `apps/web/lib/logger.ts` and eliminated all silent catch blocks in page components.
+
+---
+
 ## [1.2.0] - 2026-08-20
 
 ### Added
