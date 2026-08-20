@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2] - 2026-08-20
+
+### Fixed
+- **Screening Service NameError Regression**: Resolved undefined `logger` and `norm1`/`norm2` variable references in `_name_similarity` phonetic exception block.
+- **CI Static Gate Enforcement**: Configured explicit `continue-on-error: false` and standard task definitions for `ci_runs_tests`, `ci_runs_lint`, and `ci_runs_typecheck`.
+- **Dependency Manifest Reconciliation**: Added PEP 621 runtime project metadata to `pyproject.toml` and integrated `pip check` automated health verification.
+
+### Added
+- **Dedicated Adverse Media Service Specs**: Created `test_adverse_media_service.py` with zero-network `httpx` and News API mock fixtures.
+- **FastAPI Sentry Telemetry Integration**: Wired Sentry exception capture into global exception handler in `api/index.py` with app boot verification tests.
+
+---
+
 ## [1.3.1] - 2026-08-20
 
 ### Added
