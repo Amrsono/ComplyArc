@@ -152,8 +152,10 @@ for r in [auth_router, screening_router, clients_router, risk_router, cases_rout
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     import traceback
+    from app.core.sentry import sentry
     error_trace = traceback.format_exc()
     logger.error(f"💥 Unhandled exception on {request.method} {request.url.path}: {exc}\n{error_trace}")
+    sentry.capture_exception(exc, {"method": request.method, "path": str(request.url.path)})
     return JSONResponse(
         status_code=500,
         content={
