@@ -1,15 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import type { User } from '@/lib/types';
 import api from '@/lib/api';
-
-interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  organization?: string;
-  role: string;
-}
 
 interface AuthContextValue {
   user: User | null;

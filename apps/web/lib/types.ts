@@ -93,11 +93,18 @@ export interface ComplianceCase {
   id: string;
   case_number: string;
   title: string;
+  description?: string;
+  case_type?: string;
   client_id?: string;
   client_name?: string;
-  status: 'open' | 'under_review' | 'escalated' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'open' | 'under_review' | 'escalated' | 'closed' | string;
+  priority: 'low' | 'medium' | 'high' | 'critical' | string;
   assigned_to?: string;
+  resolution?: string;
+  sar_filed?: boolean;
+  sar_reference?: string;
+  screening_result_id?: string;
+  adverse_media_id?: string;
   risk_score?: number;
   notes_count?: number;
   created_at: string;
@@ -107,8 +114,10 @@ export interface ComplianceCase {
 export interface Alert {
   id: string;
   client_id?: string;
+  client?: string;
+  type?: string;
   title: string;
-  alert_type: 'sanction_hit' | 'pep_match' | 'adverse_media' | 'risk_spike';
+  alert_type?: 'sanction_hit' | 'pep_match' | 'adverse_media' | 'risk_spike';
   severity: 'low' | 'medium' | 'high' | 'critical';
   status: 'unread' | 'read' | 'investigating' | 'resolved';
   description?: string;

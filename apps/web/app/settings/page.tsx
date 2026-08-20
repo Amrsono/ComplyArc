@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Settings as SettingsIcon, Key, Users, Bell, Shield, Globe, Database, ShieldAlert } from 'lucide-react';
+import { useState } from 'react';
+import { Settings as SettingsIcon, Key, Users, Bell, Shield, Globe, Database, ShieldAlert, LucideIcon } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useTranslation } from '@/lib/i18n';
 import { OrgSettings } from './components/OrgSettings';
@@ -11,7 +11,7 @@ import { NotificationSettings } from './components/NotificationSettings';
 import { DataSourcesSettings } from './components/DataSourcesSettings';
 
 interface SettingsSectionItem {
-  icon: React.ComponentType<{ className?: string; size?: number }>;
+  icon: LucideIcon;
   labelKey: string;
   id: string;
 }
