@@ -22,9 +22,10 @@ class Settings(BaseSettings):
     @property
     def effective_database_url(self) -> str:
         """Priority: POSTGRES_URL (Vercel) > DATABASE_URL > Default."""
-        # Note: Pydantic BaseSettings can also be configured to handle this via Field(validation_alias=...)
-        # but manual property is very explicit for various hosting providers.
-        return os.getenv("POSTGRES_URL") or self.DATABASE_URL
+        url = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL") or self.DATABASE_URL
+        if (os.getenv("VERCEL") or "vercel" in os.getenv("ENVIRONMENT", "").lower()) and "sqlite" in url and "/tmp/" not in url:
+            return "sqlite+aiosqlite:////tmp/complyarc.db"
+        return url
 
     @property
     def database_url_async(self) -> str:

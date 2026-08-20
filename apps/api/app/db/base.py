@@ -48,8 +48,10 @@ class Base(DeclarativeBase):
     pass
 
 
-# â”€â”€â”€ Session Dependency â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Session Dependency ──────────────────────────────────────────
 async def get_db() -> AsyncSession:
+    from app.db.init_db import ensure_db_initialized
+    await ensure_db_initialized()
     async with async_session_factory() as session:
         try:
             yield session

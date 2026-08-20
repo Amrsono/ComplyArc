@@ -51,6 +51,14 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
 
+    # Self-heal default admin account if not yet seeded
+    if not user and request.email == "admin@complyarc.com":
+        from app.db.init_db import init_db
+        await init_db(db)
+        await db.flush()
+        result = await db.execute(select(User).where(User.email == request.email))
+        user = result.scalar_one_or_none()
+
     if not user or not verify_password(request.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

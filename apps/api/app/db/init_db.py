@@ -79,3 +79,21 @@ async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables created")
+
+
+_initialized = False
+
+async def ensure_db_initialized():
+    """Lazily ensure tables and admin user are initialized even if lifespan was skipped."""
+    global _initialized
+    if _initialized:
+        return
+    try:
+        await create_tables()
+        from app.db.base import async_session_factory
+        async with async_session_factory() as session:
+            await init_db(session)
+            await session.commit()
+        _initialized = True
+    except Exception as e:
+        logger.warning(f"Lazy DB initialization encountered: {e}")
