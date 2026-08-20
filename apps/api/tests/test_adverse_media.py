@@ -4,7 +4,7 @@ Unit and integration tests for Adverse Media AI Service
 import os
 import json
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 from app.services.adverse_media_service import adverse_media_service
 from app.schemas.media import MediaSearchRequest
 from app.models.client import Client
@@ -46,6 +46,42 @@ def test_heuristic_classification():
     neu_class = adverse_media_service._heuristic_classification(neutral_article)
     assert neu_class["category"] == "other"
     assert neu_class["severity"] == "low"
+
+
+@pytest.mark.asyncio
+async def test_llm_classification_flow():
+    """Test classification when OpenAI API key is supplied."""
+    article = {
+        "title": "Offshore Firm Implicated in Sanctions Busting",
+        "description": "Evidence uncovered of concealed Russian assets.",
+        "source": "Global Financial Tribune",
+    }
+
+    mock_json_response = json.dumps({
+        "category": "sanctions_evasion",
+        "severity": "critical",
+        "relevance_score": 95.0,
+        "confidence_score": 90.0,
+        "summary": "Entity actively involved in sanctions evasion network.",
+        "risk_impact": "Immediate freeze requirement and regulatory reporting.",
+        "risk_score_impact": 3.0,
+    })
+
+    with patch("openai.AsyncOpenAI") as mock_openai_cls:
+        mock_client = MagicMock()
+        mock_completion = MagicMock()
+        mock_choice = MagicMock()
+        mock_choice.message.content = mock_json_response
+        mock_completion.choices = [mock_choice]
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_completion)
+        mock_openai_cls.return_value = mock_client
+
+        res = await adverse_media_service._classify_article(
+            "Offshore Firm", article, openai_api_key="sk-mock-key-123"
+        )
+        assert res["category"] == "sanctions_evasion"
+        assert res["severity"] == "critical"
+        assert res["relevance_score"] == 95.0
 
 
 @pytest.mark.asyncio
