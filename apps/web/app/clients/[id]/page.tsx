@@ -6,6 +6,7 @@ import { Shield, AlertTriangle, User, Building2, ChevronLeft, Loader2, Search, A
 import Link from 'next/link';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import api from '@/lib/api';
+import logger from '@/lib/logger';
 import { useToast } from '@/components/ui/Toast';
 import type { Client, RiskBreakdown, UBO } from '@/lib/types';
 
@@ -26,7 +27,10 @@ export default function ClientProfilePage() {
       try {
         const [c, u] = await Promise.all([
           api.getClient(clientId),
-          api.getUBOs(clientId).catch(() => []),
+          api.getUBOs(clientId).catch((err) => {
+            logger.warn('ClientProfilePage', `Failed to load UBOs for client ${clientId}`, err);
+            return [];
+          }),
         ]);
         setClient(c);
         setUbos(u || []);
@@ -34,8 +38,11 @@ export default function ClientProfilePage() {
         try {
           const r = await api.getClientRisk(clientId);
           setRisk(r);
-        } catch { /* no risk score yet */ }
+        } catch (riskErr) {
+          logger.info('ClientProfilePage', `No risk assessment computed yet for client ${clientId}`, riskErr);
+        }
       } catch (err: any) {
+        logger.error('ClientProfilePage', `Failed to load client profile for ${clientId}`, err);
         showError(err.message);
       } finally {
         setLoading(false);

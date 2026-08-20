@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Activity, AlertTriangle, Clock, Play, Pause, Plus, X, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
+import logger from '@/lib/logger';
 import { useToast } from '@/components/ui/Toast';
 
 export default function MonitoringPage() {
@@ -19,6 +20,7 @@ export default function MonitoringPage() {
       const d = await api.listMonitoring();
       setData(d);
     } catch (err: any) {
+      logger.error('MonitoringPage', 'Failed to fetch monitoring overview', err);
       showError(err.message);
     } finally {
       setLoading(false);
@@ -33,6 +35,7 @@ export default function MonitoringPage() {
       success(result.status === 'active' ? 'Monitoring resumed' : 'Monitoring paused');
       fetchData();
     } catch (err: any) {
+      logger.error('MonitoringPage', `Failed to toggle monitoring for ${id}`, err);
       showError(err.message);
     }
   };
@@ -45,6 +48,7 @@ export default function MonitoringPage() {
       setShowRegister(false);
       fetchData();
     } catch (err: any) {
+      logger.error('MonitoringPage', 'Failed to register client for monitoring', err);
       showError(err.message);
     }
   };
@@ -53,7 +57,10 @@ export default function MonitoringPage() {
     try {
       const c = await api.listClients({ page_size: '100' });
       setClients(c.items || []);
-    } catch { /* ignore */ }
+    } catch (err) {
+      logger.warn('MonitoringPage', 'Failed to populate clients dropdown for registration modal', err);
+      setClients([]);
+    }
     setShowRegister(true);
   };
 

@@ -13,9 +13,10 @@ from sqlalchemy import select
 from app.models.adverse_media import AdverseMedia
 from app.models.system_settings import SystemSettings
 from app.core.config import settings
+from app.core.logging_config import get_logger
 from app.schemas.media import MediaSearchRequest, MediaSearchResponse, MediaHitResponse
 
-logger = logging.getLogger(__name__)
+logger = get_logger("complyarc.adverse_media")
 
 
 class AdverseMediaService:
@@ -163,7 +164,7 @@ class AdverseMediaService:
                         })
                     return articles
         except Exception as e:
-            logger.error(f"News API error: {e}")
+            logger.error("news_api_fetch_failed", error=str(e), entity=entity_name)
 
         return await self._get_google_news_rss(entity_name)
 
@@ -203,7 +204,7 @@ class AdverseMediaService:
                             "published_date": pub_date,
                         })
         except Exception as e:
-            logger.error(f"Google News RSS error: {e}")
+            logger.error("google_news_rss_failed", error=str(e), entity=entity_name)
 
         return articles
 
@@ -218,39 +219,41 @@ class AdverseMediaService:
 
             prompt = f"""Analyze this news article for AML/compliance risk regarding the entity "{entity_name}".
 
-Title: {article.get('title', '')}
+Article Title: {article.get('title', '')}
+Article Snippet: {article.get('description', '')}
 Source: {article.get('source', '')}
-Content: {article.get('description', '')}
 
-Respond in JSON format with these exact fields:
+Respond ONLY with a valid JSON object matching this schema:
 {{
-    "category": "one of: fraud, corruption, terrorism, money_laundering, sanctions_evasion, tax_evasion, bribery, embezzlement, organized_crime, other",
-    "severity": "one of: low, medium, high, critical",
-    "relevance_score": 0-100 (how relevant to the entity),
-    "confidence_score": 0-100 (confidence in classification),
-    "summary": "2-3 sentence risk summary (If the article is in Arabic, provide the summary in Arabic)",
-    "risk_impact": "brief description of potential compliance risk impact (Language matching the summary)",
-    "risk_score_impact": 0.0-2.0 (suggested risk score increase)
+  "category": "one of {self.CATEGORIES}",
+  "severity": "low|medium|high|critical",
+  "relevance_score": float 0-100 (how relevant to AML risk),
+  "confidence_score": float 0-100 (confidence in assessment),
+  "summary": "1-2 sentence concise risk summary",
+  "risk_impact": "potential regulatory or compliance consequence",
+  "risk_score_impact": float 0-5 (recommended boost to entity risk score)
 }}"""
 
             response = await client.chat.completions.create(
                 model=settings.OPENAI_MODEL,
                 messages=[
-                    {"role": "system", "content": "You are an expert AML compliance analyst. Classify news articles for financial crime risk. Always respond with valid JSON only."},
+                    {"role": "system", "content": "You are a senior AML compliance analyst. Output valid JSON only."},
                     {"role": "user", "content": prompt},
                 ],
-                temperature=0.2,
-                max_tokens=500,
+                temperature=0.1,
+                max_tokens=300,
             )
 
             result_text = response.choices[0].message.content.strip()
-            # Clean potential markdown wrapping
-            if result_text.startswith("```"):
-                result_text = result_text.split("\n", 1)[1].rsplit("```", 1)[0]
+            if result_text.startswith("```json"):
+                result_text = result_text[7:]
+            if result_text.endswith("```"):
+                result_text = result_text[:-3]
+
             return json.loads(result_text)
 
         except Exception as e:
-            logger.error(f"OpenAI classification error: {e}")
+            logger.error("openai_classification_failed", error=str(e), entity=entity_name)
             return self._heuristic_classification(article)
 
     def _heuristic_classification(self, article: dict) -> dict:

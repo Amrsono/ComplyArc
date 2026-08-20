@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Plus, X, MessageSquare, Send } from 'lucide-react';
 import api from '@/lib/api';
+import logger from '@/lib/logger';
 import { useToast } from '@/components/ui/Toast';
 import type { ComplianceCase, CaseNote } from '@/lib/types';
 
@@ -30,6 +31,7 @@ export default function CasesPage() {
       const data = await api.listCases({ page_size: '100' });
       setCases(data.items || []);
     } catch (err: any) {
+      logger.error('CasesPage', 'Failed to fetch cases list', err);
       showError(err.message);
     } finally {
       setLoading(false);
@@ -46,6 +48,7 @@ export default function CasesPage() {
       setNewForm({ title: '', case_type: 'sanctions_match', priority: 'medium', client_name: '' });
       fetchCases();
     } catch (err: any) {
+      logger.error('CasesPage', 'Failed to create case', err);
       showError(err.message);
     }
   };
@@ -56,6 +59,7 @@ export default function CasesPage() {
       success(`Case moved to ${statusLabels[newStatus]}`);
       fetchCases();
     } catch (err: any) {
+      logger.error('CasesPage', `Failed to update case ${caseId} status`, err);
       showError(err.message);
     }
   };
@@ -65,7 +69,10 @@ export default function CasesPage() {
     try {
       const n = await api.getCaseNotes(c.id);
       setNotes(n || []);
-    } catch { setNotes([]); }
+    } catch (noteErr) {
+      logger.warn('CasesPage', `Failed to fetch notes for case ${c.id}`, noteErr);
+      setNotes([]);
+    }
   };
 
   const handleAddNote = async () => {
