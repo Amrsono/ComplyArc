@@ -15,15 +15,13 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.core.config import settings
+from app.core.logging_config import configure_logging, get_logger
 from app.db.base import async_session_factory
 from app.db.init_db import create_tables, init_db
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO if not settings.DEBUG else logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
-logger = logging.getLogger(__name__)
+# Configure structured logging
+configure_logging()
+logger = get_logger("complyarc.api")
 
 
 @asynccontextmanager
