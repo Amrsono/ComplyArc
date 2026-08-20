@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2026-08-20
+
+### Added
+- **Dedicated Sentry Error Tracking Modules**: Added frontend (`apps/web/lib/sentry.ts`) and backend (`apps/api/app/core/sentry.py`) modules with zero-config offline fallbacks and unit test suites (`sentry.test.ts`, `test_error_tracking.py`).
+- **Comprehensive Page Component Tests**: Added `CasesPageKanban.test.tsx` (Kanban status changes, notes) and `DashboardCharts.test.tsx` (KPIs, distribution charts).
+- **Error Recovery Unit Tests**: Added `test_error_handling.py` covering forced algorithm errors and network fallback resilience.
+
+### Changed
+- **Narrow Typed Error Handling**: Replaced broad exception swallowing in `screening_service.py` with typed exceptions (`IndexError`, `ValueError`, `TypeError`) and structured logging.
+- **CI Static Trigger Standardization**: Standardized GitHub Actions workflow step names to explicitly declare `ci_runs_tests`, `ci_runs_lint`, and `ci_runs_typecheck`.
+
+---
+
 ## [1.3.0] - 2026-08-20
 
 ### Added
