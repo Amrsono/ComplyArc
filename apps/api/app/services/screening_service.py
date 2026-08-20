@@ -78,7 +78,8 @@ class ScreeningService:
             m2 = jellyfish.metaphone(n2.split()[0]) if n2.split() else ""
             if m1 == m2 and m1:
                 phonetic_score = max(phonetic_score, 80.0)
-        except Exception:
+        except (IndexError, ValueError, TypeError) as e:
+            logger.warning("phonetic_matching_degraded", error=str(e), n1=norm1, n2=norm2)
             phonetic_score = 0.0
 
         # Weighted combination
@@ -104,7 +105,8 @@ class ScreeningService:
             if dob1[:4] == dob2[:4]:
                 return 60.0
             return 0.0
-        except Exception:
+        except (IndexError, ValueError, TypeError) as e:
+            logger.warning("dob_matching_error", error=str(e), dob1=dob1, dob2=dob2)
             return 50.0
 
     @staticmethod
