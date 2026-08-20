@@ -86,7 +86,10 @@ cd apps/web && npm test
 
 ## 🛠 Local Development Setup
 
-### 1. Backend API (`apps/api`)
+### 1. Zero-Configuration Clean Clone
+ComplyArc requires **no mandatory external API keys** for local development or testing. External integrations (`OPENAI_API_KEY`, `NEWS_API_KEY`) are optional; when absent, the system automatically falls back to deterministic NLP heuristics and Google News RSS parsing via `adverse_media_service.py`'s `_fetch_news` and `_heuristic_classification`.
+
+### 2. Backend API (`apps/api`)
 ```bash
 cd apps/api
 python -m venv venv
@@ -94,21 +97,35 @@ python -m venv venv
 pip install -r requirements.txt
 uvicorn api.index:app --reload --port 8000
 ```
-Interactive API Swagger Docs: `http://localhost:8000/api/docs`
+- Interactive API Swagger Docs: `http://localhost:8000/api/docs`
+- Health Endpoint: `http://localhost:8000/api/health`
 
-### 2. Frontend Web (`apps/web`)
+### 3. Frontend Web (`apps/web`)
 ```bash
 cd apps/web
 npm install
 npm run dev
 ```
-Web Dashboard: `http://localhost:3000`
+- Web Dashboard: `http://localhost:3000`
+
+### 4. Docker & Container Orchestration
+The monorepo includes isolated multi-stage Dockerfiles:
+- **API Dockerfile**: [`apps/api/Dockerfile`](apps/api/Dockerfile) (Python 3.11-slim, uvicorn)
+- **Web Dockerfile**: [`apps/web/Dockerfile`](apps/web/Dockerfile) (Node 20 multi-stage production build)
+
+Run full stack in one command:
+```bash
+docker compose up -d
+```
 
 ---
 
 ## 🔒 Security & Compliance Standards
 
 - **Zero-Knowledge API Keys**: Hashed with SHA-256 before storage.
+- **Dependency & Vulnerability Scanning**: Continuous `npm audit` and `pip-audit` automated in CI.
+- **Automated Dependency Updates**: Weekly automated dependency updates via `.github/dependabot.yml`.
+- **Structured Logging**: Production JSON structured logging via `structlog`.
 - **Immutable Audit Trail**: Complies with FATF Recommendation 11 for record-keeping and auditability.
 - **Enterprise RBAC**: Role-based access control supporting `admin`, `compliance_officer`, `analyst`, and `viewer`.
 - **Explainable AI**: Every automated risk score and screening hit includes natural language evidence breakdown and score weighting rationales.
