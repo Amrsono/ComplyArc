@@ -17,6 +17,9 @@ export interface Client {
   type?: 'individual' | 'corporate';
   entity_type?: 'individual' | 'corporate';
   jurisdiction?: string;
+  country?: string;
+  email?: string;
+  phone?: string;
   industry?: string;
   product_type?: string;
   interface_type?: string;
@@ -61,7 +64,9 @@ export interface MatchDetails {
 
 export interface ScreeningResult {
   screening_id: string;
-  query_name: string;
+  query_name?: string;
+  screened_entity?: string;
+  entity_name?: string;
   total_matches: number;
   overall_risk: 'low' | 'medium' | 'high' | 'critical';
   matches: MatchDetails[];
@@ -91,6 +96,8 @@ export interface RiskBreakdown {
   };
   factors?: Record<string, number>;
   rationales?: string[];
+  ai_summary?: string;
+  summary?: string;
   version?: number;
   calculated_at?: string;
 }
@@ -135,6 +142,8 @@ export interface Alert {
   alert_type?: 'sanction_hit' | 'pep_match' | 'adverse_media' | 'risk_spike';
   severity: 'low' | 'medium' | 'high' | 'critical';
   status: 'unread' | 'read' | 'investigating' | 'resolved';
+  read?: boolean;
+  is_read?: boolean;
   description?: string;
   created_at: string;
 }

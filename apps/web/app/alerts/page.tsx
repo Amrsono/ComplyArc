@@ -11,9 +11,6 @@ const typeIcons: Record<string, any> = {
   sanctions_match: ShieldAlert, adverse_media: AlertTriangle,
   risk_change: TrendingUp, pep_match: Eye, monitoring: Activity,
 };
-const severityColors: Record<string, string> = {
-  critical: '#dc2626', high: '#ef4444', medium: '#f59e0b', low: '#10b981',
-};
 const typeLabels: Record<string, string> = {
   sanctions_hit: 'Sanctions Hit', adverse_media: 'Adverse Media',
   risk_change: 'Risk Change', pep_match: 'PEP Match', monitoring: 'Monitoring',
@@ -152,7 +149,7 @@ export default function AlertsPage() {
           {alerts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>No alerts found</div>
           ) : alerts.map((alert) => {
-            const Icon = typeIcons[alert.type] || Bell;
+            const Icon = (alert.type && typeIcons[alert.type]) || Bell;
             return (
               <div key={alert.id} style={{
                 display: 'flex', gap: '14px', padding: '16px 14px',
@@ -172,7 +169,7 @@ export default function AlertsPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span className={`badge badge-${alert.severity}`} style={{ fontSize: '10px', padding: '2px 8px' }}>
-                        {typeLabels[alert.type] || alert.type}
+                        {(alert.type && typeLabels[alert.type]) || alert.type || 'Alert'}
                       </span>
                       <span style={{ fontWeight: 600, fontSize: '13.5px' }}>{alert.client}</span>
                     </div>
