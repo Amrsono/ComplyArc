@@ -14,13 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
-from app.core.config import settings
+from app.core.config import settings, init_error_tracking
 from app.core.logging_config import configure_logging, get_logger
 from app.db.base import async_session_factory
 from app.db.init_db import create_tables, init_db
 
-# Configure structured logging
+# Configure structured logging & error tracking
 configure_logging()
+init_error_tracking()
 logger = get_logger("complyarc.api")
 
 

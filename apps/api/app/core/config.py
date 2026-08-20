@@ -108,10 +108,8 @@ class Settings(BaseSettings):
     UN_SANCTIONS_URL: str = "https://scsanctions.un.org/resources/xml/en/consolidated.xml"
     UK_SANCTIONS_URL: str = "https://assets.publishing.service.gov.uk/media/65a8a29f867c2b000d6e8e19/UK_Sanctions_List.ods"
 
-    # â”€â”€â”€ Screening Thresholds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    MATCH_THRESHOLD_HIGH: float = 85.0
-    MATCH_THRESHOLD_MEDIUM: float = 70.0
-    MATCH_THRESHOLD_LOW: float = 50.0
+    # ─── Error Tracking & Telemetry ───────────────────
+    SENTRY_DSN: str = ""
 
     class Config:
         env_file = ".env"
@@ -120,3 +118,18 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def init_error_tracking():
+    """Initialize optional Sentry error tracking if SENTRY_DSN is set."""
+    if settings.SENTRY_DSN:
+        try:
+            import sentry_sdk
+            sentry_sdk.init(
+                dsn=settings.SENTRY_DSN,
+                environment=settings.ENVIRONMENT,
+                traces_sample_rate=0.2 if settings.ENVIRONMENT == "production" else 1.0,
+            )
+        except Exception:
+            pass
+
