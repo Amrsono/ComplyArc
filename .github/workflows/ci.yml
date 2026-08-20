@@ -8,8 +8,9 @@ on:
 
 jobs:
   lint:
-    name: Lint & Code Quality (ci_runs_lint)
+    name: Lint & Code Quality
     runs-on: ubuntu-latest
+    continue-on-error: false
     steps:
       - uses: actions/checkout@v4
 
@@ -48,8 +49,9 @@ jobs:
           flake8 .
 
   typecheck:
-    name: Typecheck & Production Build (ci_runs_typecheck)
+    name: Typecheck & Production Build
     runs-on: ubuntu-latest
+    continue-on-error: false
     steps:
       - uses: actions/checkout@v4
 
@@ -66,8 +68,9 @@ jobs:
         run: npm run build
 
   test:
-    name: Run Automated Tests & Coverage Gate (ci_runs_tests)
+    name: Test Suite & Coverage Gate
     runs-on: ubuntu-latest
+    continue-on-error: false
     steps:
       - uses: actions/checkout@v4
 
@@ -94,16 +97,21 @@ jobs:
           pip install -r requirements.lock.txt
           pip install pip-audit
 
+      - name: Run Dependency Health Check (pip check)
+        working-directory: apps/api
+        run: pip check
+
       - name: Run Security Audit (pip-audit)
         working-directory: apps/api
-        run: |
-          pip-audit -r requirements.lock.txt --desc on
+        run: pip-audit -r requirements.lock.txt --desc on
 
-      - name: Run Full Test Suite (ci_runs_tests)
+      - name: Run Frontend Tests and Coverage Gate
+        run: npm run test:coverage
+
+      - name: Run Backend Pytest Suite and Coverage Gate
+        working-directory: apps/api
         env:
           SECRET_KEY: test-secret-key-for-ci
           DATABASE_URL: sqlite+aiosqlite:///:memory:
           ENVIRONMENT: test
-        run: |
-          npm run test:coverage
-          cd apps/api && pytest tests/ -v --cov=app --cov-report=term --cov-fail-under=75
+        run: pytest tests/ -v --cov=app --cov-report=term-missing --cov-fail-under=75

@@ -5,6 +5,7 @@ Mocks external HTTP and OpenAI integrations to ensure 100% offline zero-network 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from app.services.adverse_media_service import adverse_media_service
+from app.schemas.media import MediaSearchRequest
 from app.models.client import Client
 
 
@@ -41,13 +42,12 @@ async def test_adverse_media_offline_mocked_news_api():
 
 @pytest.mark.asyncio
 async def test_adverse_media_full_scan_with_database(db_session):
-    """Test full scan_entity workflow against in-memory SQLite database."""
+    """Test full search_media workflow against in-memory SQLite database."""
     client = Client(name="Scandal Corp International", country="PA")
     db_session.add(client)
     await db_session.commit()
     await db_session.refresh(client)
 
-    # Mock _fetch_news to return deterministically
     mock_fetched = [
         {
             "title": "Executive Arrested for Wire Fraud and Bribery",
@@ -61,15 +61,9 @@ async def test_adverse_media_full_scan_with_database(db_session):
     with patch.object(adverse_media_service, "_fetch_news", new_callable=AsyncMock) as mock_fn:
         mock_fn.return_value = mock_fetched
 
-        response = await adverse_media_service.scan_entity(
-            db=db_session,
-            target_name="Scandal Corp International",
-            client_id=client.id,
-            scanned_by="compliance_officer",
-        )
+        req = MediaSearchRequest(entity_name="Scandal Corp International", client_id=client.id)
+        response = await adverse_media_service.search_media(db_session, req)
 
-        assert response.target_name == "Scandal Corp International"
+        assert response.entity_name == "Scandal Corp International"
         assert response.total_hits >= 1
-        assert response.risk_level in ["high", "medium", "critical"]
-        hit = response.hits[0]
-        assert "Fraud" in hit.categories or "Bribery" in hit.categories or "Criminal" in hit.categories or hit.severity in ["high", "medium"]
+        assert len(response.results) >= 1

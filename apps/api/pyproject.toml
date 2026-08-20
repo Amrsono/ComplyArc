@@ -33,9 +33,11 @@ dependencies = [
     # Data Processing
     "lxml>=5.2.0",
     "pandas>=2.2.0",
-    # Utilities
+    # Utilities & Telemetry
     "python-dateutil>=2.9.0",
     "pycountry>=24.6.1",
+    "structlog>=24.1.0",
+    "sentry-sdk[fastapi]>=2.0.0",
 ]
 
 [project.optional-dependencies]

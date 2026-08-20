@@ -81,11 +81,13 @@ npm run test:coverage
 ComplyArc requires **no mandatory external API keys** for local development or testing. External integrations (`OPENAI_API_KEY`, `NEWS_API_KEY`, `SENTRY_DSN`) are optional; when absent, the system automatically falls back to deterministic NLP heuristics and offline test fixtures.
 
 ### 2. Backend API (`apps/api`)
+- **Source of Truth**: [`apps/api/requirements.lock.txt`](apps/api/requirements.lock.txt) contains the exact pinned dependencies for reproducible, deterministic builds across CI and local environments. [`apps/api/requirements.txt`](apps/api/requirements.txt) is the high-level direct dependency manifest.
 ```bash
 cd apps/api
 python -m venv venv
 # On Windows: venv\Scripts\activate | On macOS/Linux: source venv/bin/activate
 pip install -r requirements.lock.txt
+pip check
 uvicorn api.index:app --reload --port 8000
 ```
 - Interactive API Swagger Docs: `http://localhost:8000/api/docs`

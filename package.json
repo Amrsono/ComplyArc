@@ -1,6 +1,6 @@
 {
   "name": "complyarc",
-  "version": "1.2.0",
+  "version": "1.3.1",
   "private": true,
   "description": "ComplyArc — AI-Native AML & eKYC Operating System",
   "scripts": {
@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:web": "npm run test --workspace=@complyarc/web",
-    "test:api": "pytest apps/api/tests/ -v || python -m pytest apps/api/tests/ -v || cd apps/api && (venv\\Scripts\\pytest tests/ -v || pytest tests/ -v)",
+    "test:api": "pytest apps/api/tests/ -v",
     "test:all": "npm run test:web && npm run test:api",
     "dev:web": "npm run dev --workspace=@complyarc/web",
     "dev:api": "cd apps/api && uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
