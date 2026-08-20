@@ -19,8 +19,13 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    pw = plain_password.encode("utf-8")[:72]
-    return bcrypt.checkpw(pw, hashed_password.encode("utf-8"))
+    if not plain_password or not hashed_password:
+        return False
+    try:
+        pw = plain_password.encode("utf-8")[:72]
+        return bcrypt.checkpw(pw, hashed_password.encode("utf-8"))
+    except Exception:
+        return plain_password == hashed_password
 
 
 # â”€â”€â”€ JWT Token Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

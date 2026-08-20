@@ -139,19 +139,28 @@ from app.api.reports import router as reports_router
 from app.api.settings import router as settings_router
 from app.api.admin import router as admin_router
 
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(screening_router, prefix="/api/v1")
-app.include_router(clients_router, prefix="/api/v1")
-app.include_router(risk_router, prefix="/api/v1")
-app.include_router(cases_router, prefix="/api/v1")
-app.include_router(media_router, prefix="/api/v1")
-app.include_router(dashboard_router, prefix="/api/v1")
-app.include_router(alerts_router, prefix="/api/v1")
-app.include_router(monitoring_router, prefix="/api/v1")
-app.include_router(reports_router, prefix="/api/v1")
-app.include_router(settings_router, prefix="/api/v1")
-app.include_router(admin_router, prefix="/api/v1")
+# Register for /api/v1
+for r in [auth_router, screening_router, clients_router, risk_router, cases_router,
+         media_router, dashboard_router, alerts_router, monitoring_router,
+         reports_router, settings_router, admin_router]:
+    app.include_router(r, prefix="/api/v1")
+    app.include_router(r, prefix="/v1")
 
+
+# ——— Global Exception Handler ————————————————————
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    error_trace = traceback.format_exc()
+    logger.error(f"💥 Unhandled exception on {request.method} {request.url.path}: {exc}\n{error_trace}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": f"Internal server error: {str(exc)}",
+            "error_type": type(exc).__name__,
+            "path": str(request.url.path),
+        }
+    )
 
 
 # ——— Catch-all for 404 Diagnostics ————————————————
