@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import type { Client, RiskBreakdown, UBO } from '@/lib/types';
 
 export default function ClientProfilePage() {
   const params = useParams();
@@ -14,9 +15,9 @@ export default function ClientProfilePage() {
   const { success, error: showError } = useToast();
   const clientId = params.id as string;
 
-  const [client, setClient] = useState<any>(null);
-  const [risk, setRisk] = useState<any>(null);
-  const [ubos, setUbos] = useState<any[]>([]);
+  const [client, setClient] = useState<Client | null>(null);
+  const [risk, setRisk] = useState<RiskBreakdown | null>(null);
+  const [ubos, setUbos] = useState<UBO[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

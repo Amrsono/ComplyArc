@@ -14,15 +14,17 @@ export interface User {
 export interface Client {
   id: string;
   name: string;
-  entity_type: 'individual' | 'corporate';
+  type?: 'individual' | 'corporate';
+  entity_type?: 'individual' | 'corporate';
   jurisdiction?: string;
   industry?: string;
   product_type?: string;
   interface_type?: string;
   onboarding_channel?: string;
   status: 'active' | 'dormant' | 'suspended' | 'closed';
-  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+  risk_level?: 'low' | 'medium' | 'high' | 'critical' | 'unscored' | string;
   risk_score?: number;
+  risk_score_total?: number;
   national_id?: string;
   tax_id?: string;
   date_of_birth?: string;
@@ -66,18 +68,31 @@ export interface ScreeningResult {
   created_at: string;
 }
 
+export interface RiskFactorDetail {
+  score?: number;
+  factors?: string[];
+  description?: string;
+}
+
 export interface RiskBreakdown {
   client_id: string;
-  client_risk_score: number;
-  geography_risk_score: number;
-  product_risk_score: number;
-  interface_risk_score: number;
-  total_risk_score: number;
-  risk_level: 'low' | 'medium' | 'high' | 'critical';
-  factors: Record<string, number>;
-  rationales: string[];
-  version: number;
-  calculated_at: string;
+  client_risk_score?: number;
+  geography_risk_score?: number;
+  product_risk_score?: number;
+  interface_risk_score?: number;
+  total_risk_score?: number;
+  total_score?: number;
+  risk_level: 'low' | 'medium' | 'high' | 'critical' | 'unscored' | string;
+  breakdown?: {
+    client_risk?: RiskFactorDetail;
+    geography_risk?: RiskFactorDetail;
+    product_risk?: RiskFactorDetail;
+    interface_risk?: RiskFactorDetail;
+  };
+  factors?: Record<string, number>;
+  rationales?: string[];
+  version?: number;
+  calculated_at?: string;
 }
 
 export interface CaseNote {

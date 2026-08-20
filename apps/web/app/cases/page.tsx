@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Plus, X, MessageSquare, Send } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import type { ComplianceCase, CaseNote } from '@/lib/types';
 
 const priorityColors: Record<string, string> = {
   critical: '#dc2626', high: '#ef4444', medium: '#f59e0b', low: '#10b981',
@@ -15,13 +16,13 @@ const statusLabels: Record<string, string> = {
 
 export default function CasesPage() {
   const { success, error: showError } = useToast();
-  const [cases, setCases] = useState<any[]>([]);
+  const [cases, setCases] = useState<ComplianceCase[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [selectedCase, setSelectedCase] = useState<any>(null);
+  const [selectedCase, setSelectedCase] = useState<ComplianceCase | null>(null);
   const [newForm, setNewForm] = useState({ title: '', case_type: 'sanctions_match', priority: 'medium', client_name: '' });
   const [noteText, setNoteText] = useState('');
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<CaseNote[]>([]);
 
   const fetchCases = useCallback(async () => {
     setLoading(true);

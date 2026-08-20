@@ -5,21 +5,25 @@ import { useRouter } from 'next/navigation';
 import { Bell, Filter, CheckCircle, ShieldAlert, AlertTriangle, TrendingUp, Activity, Eye, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import type { Alert } from '@/lib/types';
 
 const typeIcons: Record<string, any> = {
   sanctions_match: ShieldAlert, adverse_media: AlertTriangle,
   risk_change: TrendingUp, pep_match: Eye, monitoring: Activity,
 };
+const severityColors: Record<string, string> = {
+  critical: '#dc2626', high: '#ef4444', medium: '#f59e0b', low: '#10b981',
+};
 const typeLabels: Record<string, string> = {
-  sanctions_match: 'Sanctions Match', adverse_media: 'Adverse Media',
+  sanctions_hit: 'Sanctions Hit', adverse_media: 'Adverse Media',
   risk_change: 'Risk Change', pep_match: 'PEP Match', monitoring: 'Monitoring',
 };
 
 export default function AlertsPage() {
   const router = useRouter();
   const { success, error: showError } = useToast();
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>({});
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [stats, setStats] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterType, setFilterType] = useState('all');

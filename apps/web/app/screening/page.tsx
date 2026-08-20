@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, Shield, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import type { ScreeningResult } from '@/lib/types';
 
 function getConfidenceColor(confidence: string) {
   switch (confidence) {
@@ -28,7 +29,7 @@ export default function ScreeningPage() {
   const { success, error: showError } = useToast();
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<ScreeningResult | null>(null);
   const [entityType, setEntityType] = useState('individual');
   const [selectedLists, setSelectedLists] = useState(['OFAC', 'EU', 'UN', 'UK', 'PEP', 'Internal']);
 
