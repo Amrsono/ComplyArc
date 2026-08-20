@@ -40,6 +40,16 @@ def test_name_similarity_algorithms():
     assert screening_service._name_similarity("Alice Cooper", "Bob Dylan") < 35.0
 
 
+def test_name_similarity_phonetic_exception_regression():
+    """Ensure name similarity handles empty tokens/special chars without raising NameError or UnboundLocalError."""
+    sim = screening_service._name_similarity("   ", "Normal Name")
+    assert sim == 0.0
+
+    sim2 = screening_service._name_similarity("!!!@@@###", "Test Name")
+    assert isinstance(sim2, float)
+    assert 0.0 <= sim2 <= 100.0
+
+
 def test_dob_matching():
     """Test Date of Birth matching logic."""
     # Exact match

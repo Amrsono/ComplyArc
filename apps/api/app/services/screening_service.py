@@ -18,6 +18,9 @@ from app.schemas.screening import (
     ScreenRequest, ScreenResponse, MatchDetail, BatchScreenRequest, BatchScreenResponse,
 )
 from app.services.name_normalization import normalize_arabic_name, normalize_name
+from app.core.logging_config import get_logger
+
+logger = get_logger("complyarc.screening")
 
 
 class ScreeningService:
@@ -79,7 +82,7 @@ class ScreeningService:
             if m1 == m2 and m1:
                 phonetic_score = max(phonetic_score, 80.0)
         except (IndexError, ValueError, TypeError) as e:
-            logger.warning("phonetic_matching_degraded", error=str(e), n1=norm1, n2=norm2)
+            logger.warning("phonetic_matching_degraded", error=str(e), n1=n1, n2=n2)
             phonetic_score = 0.0
 
         # Weighted combination
