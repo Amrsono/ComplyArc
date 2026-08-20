@@ -1,15 +1,17 @@
 {
   "name": "complyarc",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "ComplyArc â€” AI-Native AML & eKYC Operating System",
+  "description": "ComplyArc — AI-Native AML & eKYC Operating System",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "test": "npm run test:web && npm run test:api",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:web": "npm run test --workspace=@complyarc/web",
-    "test:api": "cd apps/api && (venv\\Scripts\\pytest tests/ -v || pytest tests/ -v || python -m pytest tests/ -v)",
+    "test:api": "pytest apps/api/tests/ -v || python -m pytest apps/api/tests/ -v || cd apps/api && (venv\\Scripts\\pytest tests/ -v || pytest tests/ -v)",
+    "test:all": "npm run test:web && npm run test:api",
     "dev:web": "npm run dev --workspace=@complyarc/web",
     "dev:api": "cd apps/api && uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
     "build:web": "turbo run build --filter=@complyarc/web",
@@ -17,7 +19,17 @@
     "db:revision": "cd apps/api && alembic revision --autogenerate"
   },
   "devDependencies": {
-    "turbo": "^2.0.0"
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^15.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/coverage-v8": "^1.6.1",
+    "jsdom": "^24.0.0",
+    "turbo": "^2.0.0",
+    "vitest": "^1.5.0"
   },
   "packageManager": "npm@10.8.2",
   "workspaces": [
