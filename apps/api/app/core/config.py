@@ -41,7 +41,12 @@ class Settings(BaseSettings):
         if "sslmode=" in url:
             url = url.replace("sslmode=", "ssl=")
 
-        # 3. SSL Enforcement for production (Vercel/Neon require this)
+        # 3. Strip channel_binding (not supported by asyncpg)
+        if "channel_binding=" in url:
+            import re
+            url = re.sub(r'[&?]channel_binding=[^&]+', '', url)
+
+        # 4. SSL Enforcement for production (Vercel/Neon require this)
         if "postgresql" in url and ("production" in self.ENVIRONMENT.lower() or "vercel" in os.getenv("VERCEL", "").lower()):
             if "ssl=" not in url:
                 separator = "&" if "?" in url else "?"

@@ -63,6 +63,7 @@ class ClientUpdateRequest(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     country: Optional[str] = None
+    industry: Optional[str] = None
     product_type: Optional[str] = None
     interface_type: Optional[str] = None
     onboarding_channel: Optional[str] = None
@@ -82,6 +83,11 @@ class ClientResponse(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
     country: Optional[str] = None
+    industry: Optional[str] = None
+    product_type: Optional[str] = None
+    interface_type: Optional[str] = None
+    onboarding_channel: Optional[str] = None
+    notes: Optional[str] = None
     risk_score: Optional[float] = None
     risk_level: Optional[str] = None
     pep_status: bool = False

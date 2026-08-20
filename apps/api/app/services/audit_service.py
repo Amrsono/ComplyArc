@@ -21,6 +21,7 @@ class AuditService:
         resource_id: Optional[str] = None,
         user_id: Optional[str] = None,
         user_email: Optional[str] = None,
+        api_key_id: Optional[str] = None,
         description: Optional[str] = None,
         old_value: Optional[dict] = None,
         new_value: Optional[dict] = None,
@@ -31,6 +32,7 @@ class AuditService:
         entry = AuditLog(
             user_id=user_id,
             user_email=user_email,
+            api_key_id=api_key_id,
             action=action,
             resource_type=resource_type,
             resource_id=resource_id,
@@ -38,7 +40,7 @@ class AuditService:
             old_value=json.dumps(old_value) if old_value else None,
             new_value=json.dumps(new_value) if new_value else None,
             ip_address=ip_address,
-            metadata=json.dumps(metadata) if metadata else None,
+            extra_metadata=json.dumps(metadata) if metadata else None,
         )
         db.add(entry)
         await db.flush()

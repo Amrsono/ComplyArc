@@ -7,7 +7,10 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "dev:web": "turbo run dev --filter=@complyarc/web",
+    "test": "npm run test:web && npm run test:api",
+    "test:web": "npm run test --workspace=@complyarc/web",
+    "test:api": "cd apps/api && (venv\\Scripts\\pytest tests/ -v || pytest tests/ -v || python -m pytest tests/ -v)",
+    "dev:web": "npm run dev --workspace=@complyarc/web",
     "dev:api": "cd apps/api && uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
     "build:web": "turbo run build --filter=@complyarc/web",
     "db:migrate": "cd apps/api && alembic upgrade head",
@@ -21,6 +24,6 @@
     "apps/*"
   ],
   "engines": {
-    "node": "20.x"
+    "node": ">=20.0.0"
   }
 }
