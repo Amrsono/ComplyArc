@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Users, Search, Plus, ChevronRight, Building2, User, Loader2, AlertTriangle } from 'lucide-react';
+import { Search, Plus, ChevronRight, Building2, User, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 
 function getRiskBadge(level: string | null) {

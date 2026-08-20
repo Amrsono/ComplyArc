@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Shield, AlertTriangle, CheckCircle, Loader2, Zap } from 'lucide-react';
+import { Search, Shield, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 

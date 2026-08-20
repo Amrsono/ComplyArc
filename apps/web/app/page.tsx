@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Users, ShieldAlert, Search, AlertTriangle, TrendingUp, TrendingDown,
-  Activity, Eye, Shield, Zap, ArrowUpRight, Clock, Loader2
+  Zap, ArrowUpRight, Clock, Loader2
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
+  PieChart, Pie, Cell, CartesianGrid,
 } from 'recharts';
 import api from '@/lib/api';
 

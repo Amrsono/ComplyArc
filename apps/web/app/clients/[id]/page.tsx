@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Shield, AlertTriangle, User, Building2, ChevronLeft, Loader2, Search, Activity } from 'lucide-react';
 import Link from 'next/link';
-import { PieChart, Pie, Cell, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 

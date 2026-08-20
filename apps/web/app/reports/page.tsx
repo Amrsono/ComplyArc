@@ -98,7 +98,7 @@ export default function ReportsPage() {
           </div>
         ) : reports.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-            No reports generated yet. Choose a template above or click "Generate Report".
+            No reports generated yet. Choose a template above or click &quot;Generate Report&quot;.
           </div>
         ) : (
           <table className="data-table">

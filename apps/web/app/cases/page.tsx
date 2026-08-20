@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldAlert, Loader2, Plus, X, MessageSquare, Send } from 'lucide-react';
+import { Loader2, Plus, X, MessageSquare, Send } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 

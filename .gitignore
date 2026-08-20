@@ -2,7 +2,7 @@
 node_modules/
 __pycache__/
 *.pyc
-.pyo
+*.pyo
 *.egg-info/
 dist/
 build/
@@ -11,8 +11,12 @@ build/
 # Environment
 .env
 .env.local
-# .env.production
+.env.production
+.env.development
+.env.test
 .env.*.local
+.env*.local
+*.env.production
 
 # Next.js
 .next/
@@ -22,6 +26,10 @@ out/
 .venv/
 venv/
 env/
+
+# Scratch and ad-hoc scripts
+scratch/
+*/scratch/
 
 # IDE
 .vscode/
@@ -44,10 +52,11 @@ docker-data/
 npm-debug.log*
 pnpm-debug.log*
 
-# Testing
+# Testing & Coverage
 .coverage
 htmlcov/
 .pytest_cache/
+coverage/
 
 # Alembic
 alembic/versions/__pycache__/

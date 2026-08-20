@@ -106,7 +106,7 @@ export default function MonitoringPage() {
             </thead>
             <tbody>
               {items.length === 0 ? (
-                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>No monitored clients. Click "Register Client" to start.</td></tr>
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>No monitored clients. Click &quot;Register Client&quot; to start.</td></tr>
               ) : items.map((c: any) => (
                 <tr key={c.id}>
                   <td style={{ fontWeight: 600, fontSize: '13.5px' }}>{c.client_name}</td>

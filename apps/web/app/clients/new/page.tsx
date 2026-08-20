@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Building2, ArrowRight, ArrowLeft, CheckCircle, Shield, Upload, Loader2 } from 'lucide-react';
+import { User, Building2, ArrowRight, ArrowLeft, CheckCircle, Upload, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 
